@@ -29,5 +29,7 @@ public:
 
 };
 
+std::vector<site> CreateSites();
+
 
 

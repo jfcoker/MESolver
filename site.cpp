@@ -13,9 +13,9 @@ void site::addNeighbour(site* pSite, double J)
 {
     // Unless already present, add passed site as neighbour to 'this'
     bool isPassedPresent = false;
-    std::vector<neighbour*>::iterator it = neighbours.begin();
-    for (int i = 0; it != neighbours.end(); i++, it++) 
-        if ((*it)->_pSite == pSite)
+    std::vector<neighbour*>::iterator it1 = neighbours.begin();
+    for (int i = 0; it1 != neighbours.end(); i++, it1++) 
+        if ((*it1)->_pSite == pSite)
             isPassedPresent = true;
     
     if (!isPassedPresent)
@@ -29,9 +29,9 @@ void site::addNeighbour(site* pSite, double J)
 
     // Unless already present, add 'this' as neighbour to passed site
     bool isThisPresent = false;
-    std::vector<neighbour*>::iterator it = pSite->neighbours.begin();
-    for (int i = 0; it != neighbours.end(); i++, it++) 
-        if ((*it)->_pSite == this)
+    std::vector<neighbour*>::iterator it2 = pSite->neighbours.begin();
+    for (int i = 0; it2 != pSite->neighbours.end(); i++, it2++) 
+        if ((*it2)->_pSite == this)
             isThisPresent = true;
     
     if (!isThisPresent) 
@@ -47,16 +47,15 @@ void site::addNeighbour(site* pSite, double J)
 site::~site()
 {
     std::vector<neighbour*>::iterator it = neighbours.begin();
-    for (int i = 0; it != neighbours.end(); i++, it++) {
-        delete (*it)->_pSite;
+    for (int i = 0; it != neighbours.end(); i++, it++)
         delete (*it);
-    }
+    
     neighbours.clear();
 }
 
 
 std::ostream& operator<<(std::ostream& os, const site& st)
 {
-    os << "pos = (" << st.pos.X << "," << st.pos.Y << "," << st.pos.Z << "); E = " << st.energy << "; # neighbors = " << st.neighbours.size;
+    os << "pos = (" << st.pos.X << "," << st.pos.Y << "," << st.pos.Z << "); E = " << st.energy << "; # neighbors = " << st.neighbours.size();
     return os;
 }

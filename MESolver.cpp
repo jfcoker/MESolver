@@ -13,9 +13,10 @@ int main()
 
     std::cout << "Creating sites...\n";
 
-    std::vector<site> allSites;
+    std::vector<site> allSites = CreateSites();
 
-
+    for (int i = 0; i < allSites.size(); i++)
+        std::cout << allSites[i] << std::endl;
 
 }
 
@@ -51,7 +52,7 @@ std::vector<site> CreateSites()
     // Assign neighbours
     double J = 0.1;
 
-    int i_x = 0, i_y = 0, i_z = 0;
+    i_x = 0, i_y = 0, i_z = 0;
 
     // highest index in each direction
     int n_x = (int)std::floor(sizeX / periodX);
@@ -81,6 +82,8 @@ std::vector<site> CreateSites()
         i_y = 0;
         i_z++;
     }
+
+    return sites;
 
 }
 

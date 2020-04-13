@@ -20,8 +20,13 @@ private:
 
 public:
 	site(double x, double y, double z, double energy);
+
 	void addNeighbour(site* pSite, double J);
+
 	~site();
+
+	friend std::ostream& operator<<(std::ostream& os, const site& st);
+
 };
 
 

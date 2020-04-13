@@ -53,3 +53,10 @@ site::~site()
     }
     neighbours.clear();
 }
+
+
+std::ostream& operator<<(std::ostream& os, const site& st)
+{
+    os << "pos = (" << st.pos.X << "," << st.pos.Y << "," << st.pos.Z << "); E = " << st.energy << "; # neighbors = " << st.neighbours.size;
+    return os;
+}

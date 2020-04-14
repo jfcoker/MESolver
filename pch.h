@@ -3,6 +3,9 @@
 #define PCH_H
 
 #include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <string>
 #include <vector>
 #include <cmath>
 #include "gsl/gsl_vector.h"

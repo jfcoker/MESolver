@@ -4,25 +4,78 @@
 #include "site.h"
 #include "simConsts.h"
 
+void printMatrix(gsl_matrix* m);
+
 int main()
 {
 
     std::cout << "Creating sites...\n";
     std::vector<site> allSites = CreateSites();
-    for (int i = 0; i < allSites.size(); i++)
+    const int M = allSites.size(); // # sites
+    for (int i = 0; i < M; i++)
         std::cout << allSites[i] << std::endl;
 
     std::cout << "\nCalculating transfer rates...\n";
-    for (int i = 0; i < allSites.size(); i++)
-        for (int f = 0; f < allSites.size(); f++)
+    for (int i = 0; i < M; i++)
+        for (int f = 0; f < M; f++)
         {
             double rate = allSites[i].Rate(&allSites[f]);
             if (rate) // if non-zero
                 std::cout << "Rate " << i << "->" << f << " = " << rate << std::endl;
         }
 
+    std::cout << "\nCreating rate matrix A\n";
+    gsl_matrix* A = gsl_matrix_alloc(M, M);
+    gsl_matrix_set_zero(A);
+    for (int i = 0; i < M; i++)
+        for (int f = 0; f < M; f++)
+        {
+            if (i == f)
+            {
+                double sum = 0.0;
+                for (int k = 0; k < M; k++)
+                    if (i != k)
+                        sum -= allSites[i].Rate(&allSites[k]);
+                gsl_matrix_set(A, i, f, sum);
+            }
+
+            else
+                gsl_matrix_set(A, i, f, allSites[f].Rate(&allSites[i])); // May need to switch i and f?
+        }
+
+    printMatrix(A);
+
+    // Free memory
+    gsl_matrix_free(A);
+
+    return 0;
+}
+
+void printMatrix(gsl_matrix* m)
+{
+
+    std::stringstream sstream;
+    sstream.setf(std::ios::scientific);
+    sstream.precision(1);
+
+    for (int i = 0; i < m->size1; i++) 
+    {
+        for (int j = 0; j < m->size2; j++)
+        {   
+            double el = gsl_matrix_get(m, i, j);
+            if (el)
+                sstream << std::setw(9) << std::left << el;
+            else
+                sstream << std::setw(9) << std::left << "0";
+        }
+        std::cout << sstream.str() << "\n";
+        sstream.str("");
+
+        
+    }
 
 }
+
 
 std::vector<site> CreateSites()
 {
@@ -30,7 +83,7 @@ std::vector<site> CreateSites()
 
     // For now, hardcode some information about the array
     double E = 0.0;
-    double sizeX = 20.0, sizeY = 20.0, sizeZ = 20.0;
+    double sizeX = 10.0, sizeY = 10.0, sizeZ = 20.0;
     double periodX = 10.0, periodY = 10.0, periodZ = 10.0;
 
     // axis index

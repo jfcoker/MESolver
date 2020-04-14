@@ -33,7 +33,7 @@ public:
 	// Otherwise return NULL
 	neighbour* hasNeighbour(site* pSite);
 
-	// Calcualte the transfer rate between this site, and the site passed as pointer.
+	// Calcualte the transfer rate between this site (as initial), and the site passed as pointer (as final).
 	// If the passed site is not in the list of interacting neighbours, the rate will be zero.
 	double Rate(site* pSite);
 

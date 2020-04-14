@@ -43,11 +43,17 @@ site::neighbour* site::hasNeighbour(site* pSite)
 
 double site::Rate(site* pSite)
 {
-    if (!this->hasNeighbour(pSite))
+    neighbour* pN = this->hasNeighbour(pSite);
+
+    if (!pN)
+        // Sites aren't interacting, transfer rate will be zero.
         return 0.0;
     else
-        return 1.0;
-
+    {
+        double J2 = std::pow(pN->_J,2); // |J_if|^2
+        double deltaE = (pSite->energy - this->energy) + e * (pSite->pos.Z - this->pos.Z) * F_Z; // deltaE = (ep_f - ep_i) + e * [M_f.Z - M_i.Z] * F_z
+        return ((2 * pi) / hbar) * J2 * std::pow(4 * pi * reorg * kBT, -0.5) * std::exp(-1 * std::pow(deltaE + reorg, 2) / (4 * reorg * kBT));
+    }
 }
 
 site::~site()

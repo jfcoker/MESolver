@@ -6,5 +6,6 @@ const double pi = 3.14159265; // dimensionless
 const double e = 1.60217646e-19; // C, elementary charge
 
 // Simulation parameters
+const double F_Z = -1e-2; // V/Ang, Electric field strength in Z direction.
 const double kBT = 0.02585; // eV, for T=300K
 const double reorg = 0.01; // eV, reorganisation energy

@@ -23,7 +23,7 @@ std::vector<site> CreateSites()
     // For now, hardcode some information about the array
     double E = 0.0;
     double sizeX = 3.0, sizeY = 3.0, sizeZ = 3.0;
-    double periodX = 1.0, periodY = 1.0, periodZ = 1.0;
+    double periodX = 10.0, periodY = 10.0, periodZ = 10.0;
 
     // axis index
     int i_x = 0, i_y = 0, i_z = 0;

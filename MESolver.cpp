@@ -5,6 +5,7 @@
 #include "simConsts.h"
 
 void printMatrix(gsl_matrix* m);
+void printVector(gsl_vector* v);
 
 int main()
 {
@@ -43,20 +44,38 @@ int main()
                 gsl_matrix_set(A, i, f, allSites[f].Rate(&allSites[i])); // May need to switch i and f?
         }
 
+    std::cout << "\nA = \n";
     printMatrix(A);
+
+    std::cout << "\nSolving ME using SVD...\n";
+    gsl_matrix* V = gsl_matrix_alloc(M, M);
+    gsl_vector* S = gsl_vector_alloc(M);
+    gsl_vector* work = gsl_vector_alloc(M);
+    int result = gsl_linalg_SV_decomp(A, V, S, work);
+
+    std::cout << "\nU = \n";
+    printMatrix(A);
+
+    std::cout << "\nS = \n";
+    printVector(S);
+
+    std::cout << "\nV = \n";
+    printMatrix(V);
 
     // Free memory
     gsl_matrix_free(A);
+    gsl_matrix_free(V);
+    gsl_vector_free(S);
+    gsl_vector_free(work);
 
     return 0;
 }
 
 void printMatrix(gsl_matrix* m)
 {
-
     std::stringstream sstream;
     sstream.setf(std::ios::scientific);
-    sstream.precision(1);
+    sstream.precision(2);
 
     for (int i = 0; i < m->size1; i++) 
     {
@@ -64,16 +83,31 @@ void printMatrix(gsl_matrix* m)
         {   
             double el = gsl_matrix_get(m, i, j);
             if (el)
-                sstream << std::setw(9) << std::left << el;
+                sstream << std::setw(10) << std::left << el;
             else
-                sstream << std::setw(9) << std::left << "0";
+                sstream << std::setw(10) << std::left << "0";
         }
         std::cout << sstream.str() << "\n";
         sstream.str("");
-
-        
     }
+}
 
+void printVector(gsl_vector* v)
+{
+    std::stringstream sstream;
+    sstream.setf(std::ios::scientific);
+    sstream.precision(2);
+
+    for (int i = 0; i < v->size; i++)
+    {
+         double el = gsl_vector_get(v,i);
+         if (el)
+            sstream << std::setw(10) << std::left << el;
+         else
+            sstream << std::setw(10) << std::left << "0";
+        std::cout << sstream.str() << "\n";
+        sstream.str("");
+    }
 }
 
 

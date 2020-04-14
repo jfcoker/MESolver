@@ -8,11 +8,19 @@ int main()
 {
 
     std::cout << "Creating sites...\n";
-
     std::vector<site> allSites = CreateSites();
-
     for (int i = 0; i < allSites.size(); i++)
         std::cout << allSites[i] << std::endl;
+
+    std::cout << "\nCalculating transfer rates...\n";
+    for (int i = 0; i < allSites.size(); i++)
+        for (int f = 0; f < allSites.size(); f++)
+        {
+            double rate = allSites[i].Rate(&allSites[f]);
+            if (rate) // if non-zero
+                std::cout << "Rate " << i << "->" << f << " = " << rate << std::endl;
+        }
+
 
 }
 
@@ -22,7 +30,7 @@ std::vector<site> CreateSites()
 
     // For now, hardcode some information about the array
     double E = 0.0;
-    double sizeX = 3.0, sizeY = 3.0, sizeZ = 3.0;
+    double sizeX = 20.0, sizeY = 20.0, sizeZ = 20.0;
     double periodX = 10.0, periodY = 10.0, periodZ = 10.0;
 
     // axis index

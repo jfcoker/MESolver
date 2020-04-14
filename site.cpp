@@ -31,19 +31,23 @@ void site::addNeighbour(site* pSite, double J)
 
 }
 
-bool site::hasNeighbour(site* pSite)
+site::neighbour* site::hasNeighbour(site* pSite)
 {
     std::vector<neighbour*>::iterator it = neighbours.begin();
     for (int i = 0; it != neighbours.end(); i++, it++)
         if ((*it)->_pSite == pSite)
-            return true;
+            return *it;
 
-    return false;
+    return NULL;
 }
 
 double site::Rate(site* pSite)
 {
-    return 0.0;
+    if (!this->hasNeighbour(pSite))
+        return 0.0;
+    else
+        return 1.0;
+
 }
 
 site::~site()

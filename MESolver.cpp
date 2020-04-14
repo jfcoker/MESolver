@@ -6,11 +6,6 @@
 
 int main()
 {
-    const double reorg = 0.01;
-    const double kBT = -999;
-
-    const double pi = 3.14;
-    const double hbar = -999;
 
     std::cout << "Creating sites...\n";
 

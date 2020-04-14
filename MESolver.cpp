@@ -24,15 +24,15 @@ std::vector<site> CreateSites()
 {
     std::vector<site> sites;
 
-    // Hardcode some information about the array
+    // For now, hardcode some information about the array
     double E = 0.0;
     double sizeX = 3.0, sizeY = 3.0, sizeZ = 3.0;
     double periodX = 1.0, periodY = 1.0, periodZ = 1.0;
 
-    // index
+    // axis index
     int i_x = 0, i_y = 0, i_z = 0;
 
-    // Create sites
+    // Create sites. Currently just using a cubic array. 
     while (i_z * periodZ <= sizeZ)
     {
         while (i_y * periodY <= sizeY)
@@ -49,7 +49,7 @@ std::vector<site> CreateSites()
         i_z++;
     }
 
-    // Assign neighbours
+    // Assign interacting neighbours. Currently we are just using the up-to 6 nearest neighbours.
     double J = 0.1;
 
     i_x = 0, i_y = 0, i_z = 0;
@@ -59,7 +59,7 @@ std::vector<site> CreateSites()
     int n_y = (int)std::floor(sizeY / periodY);
     int n_z = (int)std::floor(sizeZ / periodZ);
 
-    // Particle index
+    // Current site index
     int i_p = 0;
 
     while (i_z * periodZ <= sizeZ)
@@ -68,7 +68,10 @@ std::vector<site> CreateSites()
         {
             while (i_x * periodX <= sizeX)
             {
-
+                // If the current site is not the closest to the upper bound in each axis,
+                // then assign it the next site in each direction as a neighbor.
+                // This also automatically assigns the current site as a neighbor to each of the 'nexts',
+                // therefore we only need to specify 'forward/positive' neighbors here.
                 if (i_x != n_x) { sites[i_p].addNeighbour(&sites[i_p + 1], J); }
                 if (i_y != n_y) { sites[i_p].addNeighbour(&sites[i_p + n_x + 1], J); }
                 if (i_z != n_z) { sites[i_p].addNeighbour(&sites[i_p + (n_x + 1) * (n_y + 1)], J); }

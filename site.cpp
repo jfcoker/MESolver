@@ -44,6 +44,10 @@ void site::addNeighbour(site* pSite, double J)
 
 }
 
+double site::Rate(site* pSite)
+{
+}
+
 site::~site()
 {
     std::vector<neighbour*>::iterator it = neighbours.begin();

@@ -12,13 +12,7 @@ site::site(double x, double y, double z, double E)
 void site::addNeighbour(site* pSite, double J)
 {
     // Unless already present, add passed site as neighbour to 'this'
-    bool isPassedPresent = false;
-    std::vector<neighbour*>::iterator it1 = neighbours.begin();
-    for (int i = 0; it1 != neighbours.end(); i++, it1++) 
-        if ((*it1)->_pSite == pSite)
-            isPassedPresent = true;
-    
-    if (!isPassedPresent)
+    if (!this->hasNeighbour(pSite))
     {
         neighbour* n = new site::neighbour;
         n->_pSite = pSite;
@@ -26,15 +20,8 @@ void site::addNeighbour(site* pSite, double J)
         neighbours.push_back(n);
     }
 
-
     // Unless already present, add 'this' as neighbour to passed site
-    bool isThisPresent = false;
-    std::vector<neighbour*>::iterator it2 = pSite->neighbours.begin();
-    for (int i = 0; it2 != pSite->neighbours.end(); i++, it2++) 
-        if ((*it2)->_pSite == this)
-            isThisPresent = true;
-    
-    if (!isThisPresent) 
+    if (!pSite->hasNeighbour(this))
     {
         neighbour* th = new site::neighbour;
         th->_pSite = this;
@@ -44,10 +31,19 @@ void site::addNeighbour(site* pSite, double J)
 
 }
 
+bool site::hasNeighbour(site* pSite)
+{
+    std::vector<neighbour*>::iterator it = neighbours.begin();
+    for (int i = 0; it != neighbours.end(); i++, it++)
+        if ((*it)->_pSite == pSite)
+            return true;
+
+    return false;
+}
+
 double site::Rate(site* pSite)
 {
-
-
+    return 0.0;
 }
 
 site::~site()

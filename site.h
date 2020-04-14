@@ -28,6 +28,9 @@ public:
 	// Give this site a pointer to another site which it interacts with, alongside the associated transfer integral
 	void addNeighbour(site* pSite, double J);
 
+	// Check if this site has the passed pointed-to site as a neighbour
+	bool hasNeighbour(site* pSite);
+
 	// Calcualte the transfer rate between this site, and the site passed as pointer.
 	// If the passed site is not in the list of interacting neighbours, the rate will be zero.
 	double Rate(site* pSite);

@@ -29,5 +29,8 @@
     <ClInclude Include="site.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="simConsts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

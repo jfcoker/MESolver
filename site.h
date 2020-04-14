@@ -1,14 +1,16 @@
 #pragma once
 
 #include "pch.h"
+#include "simConsts.h"
 
 class site 
 {
 private:
 
-	// The
+	// A structure that will be used to hold the position of the site.
 	struct vec { double X, Y, Z;  };
 
+	// A structure that will be used to specify which other sites this site interacts with, and the strength of this interaction.
 	struct neighbour {
 		site* _pSite; 
 		double _J;

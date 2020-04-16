@@ -149,8 +149,10 @@
   <ItemGroup>
     <ClCompile Include="MESolver.cpp" />
     <ClCompile Include="site.cpp" />
+    <ClCompile Include="utility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="utility.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="simConsts.h" />
     <ClInclude Include="site.h" />

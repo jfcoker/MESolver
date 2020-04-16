@@ -1,11 +1,9 @@
 // This program should be capable of using SVD to solve the master equation describing the steady state transport of charge carriers in an array of molecules
 
 #include "pch.h"
+#include "utility.h"
 #include "site.h"
 #include "simConsts.h"
-
-void printMatrix(gsl_matrix* m);
-void printVector(gsl_vector* v);
 
 int main()
 {
@@ -57,7 +55,7 @@ int main()
     printMatrix(A);
 
     std::cout << "\nS = \n";
-    printVector(S);
+    printVector(S,false);
 
     std::cout << "\nV = \n";
     printMatrix(V);
@@ -70,46 +68,6 @@ int main()
 
     return 0;
 }
-
-void printMatrix(gsl_matrix* m)
-{
-    std::stringstream sstream;
-    sstream.setf(std::ios::scientific);
-    sstream.precision(2);
-
-    for (int i = 0; i < m->size1; i++) 
-    {
-        for (int j = 0; j < m->size2; j++)
-        {   
-            double el = gsl_matrix_get(m, i, j);
-            if (el)
-                sstream << std::setw(10) << std::left << el;
-            else
-                sstream << std::setw(10) << std::left << "0";
-        }
-        std::cout << sstream.str() << "\n";
-        sstream.str("");
-    }
-}
-
-void printVector(gsl_vector* v)
-{
-    std::stringstream sstream;
-    sstream.setf(std::ios::scientific);
-    sstream.precision(2);
-
-    for (int i = 0; i < v->size; i++)
-    {
-         double el = gsl_vector_get(v,i);
-         if (el)
-            sstream << std::setw(10) << std::left << el;
-         else
-            sstream << std::setw(10) << std::left << "0";
-        std::cout << sstream.str() << "\n";
-        sstream.str("");
-    }
-}
-
 
 std::vector<site> CreateSites()
 {

@@ -30,14 +30,21 @@ ArraySize CmdLineParser(int argc, char* argv[])
 
 int main(int arg, char* argv[])
 {
+    std::cout << "Simulation parameters"
+        << "\nE-Field Strength, F_z (V/Ang) = " << F_Z
+        << "\nk_B * Temp (eV) = " << kBT
+        << "\nreorg energy (eV) = " << reorg
+        << "\n\n";
+
     ArraySize sz = CmdLineParser(arg, argv);
     std::cout << "Creating sites for "<< sz.X << "x" << sz.Y << "x" << sz.Z << " array...\n";
+    std::cout << "Every 5th and 7th site is a trap, with energy -0.05 eV\n";
     std::vector<site> allSites = CreateSites(sz.X, sz.Y, sz.Z);
     const size_t M = allSites.size(); // # sites
     for (int i = 0; i < M; i++)
         std::cout << allSites[i] << std::endl;
 
-    std::cout << "\nCreating rate matrix A\n";
+    std::cout << "\nCreating rate matrix A...\n";
     gsl_matrix* A = gsl_matrix_alloc(M, M);
     gsl_matrix_set_zero(A);
     for (int i = 0; i < M; i++)

@@ -38,7 +38,7 @@ int main(int arg, char* argv[])
 
     ArraySize sz = CmdLineParser(arg, argv);
     std::cout << "Creating sites for "<< sz.X << "x" << sz.Y << "x" << sz.Z << " array...\n";
-    std::cout << "Every 5th and 7th site is a trap, with energy -0.05 eV\n";
+    std::cout << "Every 5th and 7th site is a trap\n";
     std::vector<site> allSites = CreateSites(sz.X, sz.Y, sz.Z);
     const size_t M = allSites.size(); // # sites
     for (int i = 0; i < M; i++)

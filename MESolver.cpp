@@ -63,17 +63,28 @@ int main(int arg, char* argv[])
     gsl_matrix* V = gsl_matrix_alloc(M, M);
     gsl_vector* S = gsl_vector_alloc(M);
     gsl_vector* work = gsl_vector_alloc(M);
+    gsl_vector* P = gsl_vector_alloc(M);
     gsl_linalg_SV_decomp(A, V, S, work);
 
-    std::cout << "\nSingular values = \n";
-    printVector(S,false);
+    std::cout << "\nSingular values (limited to 10 smallest) = \n";
+    printVector(S, false);
+    std::cout << "\nInput column index of V to view (non-int to exit): ";
 
-    std::cout << "\nFor now, assume the smallest singular value corresponds to the null space of A. (Sensible tolerance to be determined).\n"
-        << "\nThe steady state solution for occupation probabilities is therfore: \n"
-        << "\nP =\n";
-    gsl_vector* P = gsl_vector_alloc(M);
-    gsl_matrix_get_col(P, V, gsl_vector_min_index(S));
-    printVector(P);
+    size_t col;
+    while (std::cin >> col)
+    {
+        if (col >= V->size2)
+        {
+            std::cout << "\nIndex too large.\n";
+        }
+        else
+        {
+            std::cout << "\nP =\n";
+            gsl_matrix_get_col(P, V, col);
+            printVector(P);
+        }
+        std::cout << "\nInput column index of V to view (non-int to exit): ";   
+    }
 
     // Free memory
     gsl_matrix_free(A);

@@ -10,18 +10,9 @@ int main()
 
     std::cout << "Creating sites...\n";
     std::vector<site> allSites = CreateSites();
-    const int M = allSites.size(); // # sites
+    const size_t M = allSites.size(); // # sites
     for (int i = 0; i < M; i++)
         std::cout << allSites[i] << std::endl;
-
-    std::cout << "\nCalculating transfer rates...\n";
-    for (int i = 0; i < M; i++)
-        for (int f = 0; f < M; f++)
-        {
-            double rate = allSites[i].Rate(&allSites[f]);
-            if (rate) // if non-zero
-                std::cout << "Rate " << i << "->" << f << " = " << rate << std::endl;
-        }
 
     std::cout << "\nCreating rate matrix A\n";
     gsl_matrix* A = gsl_matrix_alloc(M, M);
@@ -106,12 +97,12 @@ std::vector<site> CreateSites()
     i_x = 0, i_y = 0, i_z = 0;
 
     // highest index in each direction
-    int n_x = (int)std::floor(sizeX / periodX);
-    int n_y = (int)std::floor(sizeY / periodY);
-    int n_z = (int)std::floor(sizeZ / periodZ);
+    size_t n_x = (int)std::floor(sizeX / periodX);
+    size_t n_y = (int)std::floor(sizeY / periodY);
+    size_t n_z = (int)std::floor(sizeZ / periodZ);
 
     // Current site index
-    int i_p = 0;
+    size_t i_p = 0;
 
     while (i_z * periodZ <= sizeZ)
     {
@@ -139,9 +130,4 @@ std::vector<site> CreateSites()
 
     return sites;
 
-}
-
-bool CreateA(gsl_matrix* A) 
-{
-    return false;
 }

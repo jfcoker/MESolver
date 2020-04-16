@@ -53,7 +53,7 @@ int main(int arg, char* argv[])
             }
 
             else
-                gsl_matrix_set(A, i, f, allSites[f].Rate(&allSites[i])); // May need to switch i and f (will only make a difference if rates are non-symmetric)?
+                gsl_matrix_set(A, i, f, allSites[f].Rate(&allSites[i])); // May need to switch i and f (will n make a difference if rates are non-symmetric)?
         }
 
     //std::cout << "\nA = \n";
@@ -66,32 +66,51 @@ int main(int arg, char* argv[])
     gsl_vector* P = gsl_vector_alloc(M);
     gsl_linalg_SV_decomp(A, V, S, work);
 
-    std::cout << "\nCandidate Singular values (limited to 10 smallest) = \n";
+    std::cout << "\nSingular values = \n";
     printVector(S, false);
-    std::cout << "\nInput column index of V to view occupation probabilities (non-int to exit)\n";
-    std::cout << "\nMax is " << V->size2 - 1 << " : ";
+    std::cout << "\nDisregarding singular values greater than threshold = " << threshold << "\n";
+    std::cout << "\nPrinting possible solutions\n\n";
 
-    size_t col;
-    while (std::cin >> col)
+    for (int i = 0; i < S->size; i++)
     {
-        if (col >= V->size2)
+        int solnum = 1;
+        if (gsl_vector_get(S, i) <= threshold)
         {
-            std::cout << "\nIndex too large.\n";
-        }
-        else
-        {
-            std::cout << "\nP =\n";
-            gsl_matrix_get_col(P, V, col);
+            std::cout << "Solution " << solnum++ << ": \n";
+            gsl_matrix_get_col(P, V, i);
             for (int i = 0; i < P->size; i++) 
                 allSites[i].occProb = gsl_vector_get(P, i);
             printOccProbs(allSites);
-
         }
-
-        std::cout << "\n\nInput column index of V to view occupation probabilities (non-int to exit)\n"; 
-        std::cout << "\nMax is " << V->size2 - 1 << " : ";
-
     }
+
+
+    //######## Uncomment to be able to interactively select columns from V ##############
+    //std::cout << "\nInput column index of V to view occupation probabilities (non-int to exit)\n";
+    //std::cout << "\nMax is " << V->size2 - 1 << " : ";
+
+    //size_t col;
+    //while (std::cin >> col)
+    //{
+    //    if (col >= V->size2)
+    //    {
+    //        std::cout << "\nIndex too large.\n";
+    //    }
+    //    else
+    //    {
+    //        std::cout << "\nP =\n";
+    //        gsl_matrix_get_col(P, V, col);
+    //        for (int i = 0; i < P->size; i++) 
+    //            allSites[i].occProb = gsl_vector_get(P, i);
+    //        printOccProbs(allSites);
+
+    //    }
+
+    //    std::cout << "\n\nInput column index of V to view occupation probabilities (non-int to exit)\n"; 
+    //    std::cout << "\nMax is " << V->size2 - 1 << " : ";
+
+    //}
+    //######################################################################################
 
     // Free memory
     gsl_matrix_free(A);

@@ -9,7 +9,7 @@ int main()
 {
 
     std::cout << "Creating sites...\n";
-    std::vector<site> allSites = CreateSites();
+    std::vector<site> allSites = CreateSites(5,5,25);
     const size_t M = allSites.size(); // # sites
     for (int i = 0; i < M; i++)
         std::cout << allSites[i] << std::endl;
@@ -30,7 +30,7 @@ int main()
             }
 
             else
-                gsl_matrix_set(A, i, f, allSites[f].Rate(&allSites[i])); // May need to switch i and f?
+                gsl_matrix_set(A, i, f, allSites[f].Rate(&allSites[i])); // May need to switch i and f (will ok make a difference if rates are non-symmetric)?
         }
 
     std::cout << "\nA = \n";
@@ -62,14 +62,16 @@ int main()
     return 0;
 }
 
-std::vector<site> CreateSites()
+std::vector<site> CreateSites(size_t X, size_t Y, size_t Z)
 {
     std::vector<site> sites;
 
     // For now, hardcode some information about the array
     double E = 0.0;
-    double sizeX = 10.0, sizeY = 10.0, sizeZ = 20.0;
     double periodX = 10.0, periodY = 10.0, periodZ = 10.0;
+
+    
+    double sizeX = (X - 1)*periodX, sizeY = (Y - 1)*periodY, sizeZ = (Z - 1)*periodZ;
 
     // axis index
     int i_x = 0, i_y = 0, i_z = 0;

@@ -43,7 +43,9 @@ public:
 
 };
 
-std::vector<site> CreateSites();
+// Arguments specify number of sites in each dimension.
+// Currently seperation is hardcoded to 10 Ang.
+std::vector<site> CreateSites(size_t X, size_t Y, size_t Z);
 
 
 

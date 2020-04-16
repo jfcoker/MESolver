@@ -5,11 +5,34 @@
 #include "site.h"
 #include "simConsts.h"
 
-int main()
+struct ArraySize { size_t X, Y, Z;};
+ArraySize CmdLineParser(int argc, char* argv[])
 {
+    ArraySize rtn;
+    if (argc == 4)
+    {
+        rtn.X = std::atoi(argv[1]);
+        rtn.Y = std::atoi(argv[2]);
+        rtn.Z = std::atoi(argv[3]);
+    }
 
-    std::cout << "Creating sites...\n";
-    std::vector<site> allSites = CreateSites(5,5,25);
+    // If arguments cannot be converted to int, atoi will return 0.
+    if (argc != 4 || rtn.X == 0 || rtn.Y == 0 || rtn.Z == 0) 
+    {
+        // Hardcoded default values
+        rtn.X = 5;
+        rtn.Y = 5;
+        rtn.Z = 25;
+    }
+
+    return rtn;
+}
+
+int main(int arg, char* argv[])
+{
+    ArraySize sz = CmdLineParser(arg, argv);
+    std::cout << "Creating sites for "<< sz.X << "x" << sz.Y << "x" << sz.Z << " array...\n";
+    std::vector<site> allSites = CreateSites(sz.X, sz.Y, sz.Z);
     const size_t M = allSites.size(); // # sites
     for (int i = 0; i < M; i++)
         std::cout << allSites[i] << std::endl;

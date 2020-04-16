@@ -79,7 +79,9 @@ void printOccProbs(std::vector<site>& sites)
         sstreamXYZ << std::setw(6) << std::left << sites[i].pos.X
             << std::setw(6) << std::left << sites[i].pos.Y
             << std::setw(6) << std::left << sites[i].pos.Z;
-        sstreamProbs << sites[i].occProb;
+        sstreamProbs << std::setw(12) << std::left << sites[i].occProb;
+
+        if (sites[i].trap) { sstreamProbs << " T"; }
 
         std::cout << sstreamXYZ.str() << sstreamProbs.str() << "\n";
         sstreamXYZ.str("");

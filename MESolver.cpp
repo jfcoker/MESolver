@@ -109,7 +109,7 @@ std::vector<site> CreateSites(size_t X, size_t Y, size_t Z)
 
     // For now, hardcode some information about the array
     double E = 0.0;
-    double Etrap = 1.0;
+    double Etrap = -0.05;
     double periodX = 10.0, periodY = 10.0, periodZ = 10.0;
     
     double sizeX = (X - 1)*periodX, sizeY = (Y - 1)*periodY, sizeZ = (Z - 1)*periodZ;
@@ -127,10 +127,12 @@ std::vector<site> CreateSites(size_t X, size_t Y, size_t Z)
         {
             while (i_x * periodX <= sizeX)
             {
-                // Make every 7th site a trap.
-                double tmp;
-                if (i_p % 7 == 0) tmp = Etrap; else tmp = E;
-                sites.push_back(site(i_x * periodX, i_y * periodY, i_z * periodZ, tmp));
+                // Make every 5th and 7th site a trap.
+                double tmpD;
+                bool tmpB;
+                if (i_p % 5 == 0 || i_p % 7 == 0) {tmpD = Etrap; tmpB = true;}
+                else { tmpD = E; tmpB = false; }
+                sites.push_back(site(i_x * periodX, i_y * periodY, i_z * periodZ, tmpD,tmpB));
                 i_p++;
                 i_x++;
             }

@@ -1,12 +1,13 @@
 #include "pch.h"
 #include "site.h"
 
-site::site(double x, double y, double z, double E) 
+site::site(double x, double y, double z, double E, bool isTrap) 
 {
     pos.X = x;
     pos.Y = y;
     pos.Z = z;
     energy = E;
+    trap = isTrap;
 }
 
 void site::addNeighbour(site* pSite, double J)

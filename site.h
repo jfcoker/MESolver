@@ -23,9 +23,10 @@ public:
 	
 	vec pos;
 	double occProb = 0;
+	bool trap = false;
 	
 	// Construct a site object
-	site(double x, double y, double z, double energy);
+	site(double x, double y, double z, double energy, bool isTrap);
 
 	// Give this site a pointer to another site which it interacts with, alongside the associated transfer integral
 	void addNeighbour(site* pSite, double J);

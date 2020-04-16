@@ -87,7 +87,8 @@ int main(int arg, char* argv[])
             printOccProbs(allSites,10);
 
         }
-        std::cout << "\nInput column index of V to view occupation probabilities (non-int to exit)\n"; 
+
+        std::cout << "\n\nInput column index of V to view occupation probabilities (non-int to exit)\n"; 
         std::cout << "\nMax is " << V->size2 - 1 << " : ";
 
     }

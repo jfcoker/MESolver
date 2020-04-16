@@ -63,3 +63,47 @@ void printDiagonal(gsl_matrix* m, bool horizontal)
     printVector(V, horizontal);
     gsl_vector_free(V);
 }
+
+void printOccProbs(std::vector<site>& sites, double period)
+{
+    std::stringstream sstream;
+    sstream.setf(std::ios::scientific);
+    sstream.precision(2);
+
+    //for (size_t i = 0; i < v->size; i++)
+    //{
+    //    double el = gsl_vector_get(v, i);
+    //    if (el) sstream << el; else sstream << "0";
+    //    if (i < v->size - 1) sstream << ", ";
+    //}
+    //sstream << "\n";
+
+
+    double el;
+    el = sites[0].occProb;
+    if (el) sstream << el; else sstream << "0";
+
+    for (int i = 1; i < sites.size(); i++)
+    {
+        if (std::abs(sites[i].pos.Z - sites[i - 1].pos.Z) > period / 2)
+        {
+            sstream << "\n";
+            std::cout << sstream.str();
+            sstream.str("");
+
+        } else
+        if (std::abs(sites[i].pos.Y - sites[i - 1].pos.Y) > period / 2)
+        {
+            sstream << "          ";
+        }
+
+
+        sstream << std::setw(10) << std::left;
+        el = sites[i].occProb;
+        if (el) sstream << el; else sstream << "0";
+
+    }
+
+    std::cout << sstream.str();
+
+}

@@ -66,9 +66,10 @@ int main(int arg, char* argv[])
     gsl_vector* P = gsl_vector_alloc(M);
     gsl_linalg_SV_decomp(A, V, S, work);
 
-    std::cout << "\nSingular values (limited to 10 smallest) = \n";
+    std::cout << "\nCandidate Singular values (limited to 10 smallest) = \n";
     printVector(S, false);
-    std::cout << "\nInput column index of V to view occupation probabilities (non-int to exit): ";
+    std::cout << "\nInput column index of V to view occupation probabilities (non-int to exit)\n";
+    std::cout << "\nMax is " << V->size2 - 1 << " : ";
 
     size_t col;
     while (std::cin >> col)
@@ -81,9 +82,14 @@ int main(int arg, char* argv[])
         {
             std::cout << "\nP =\n";
             gsl_matrix_get_col(P, V, col);
-            printVector(P);
+            for (int i = 0; i < P->size; i++) 
+                allSites[i].occProb = gsl_vector_get(P, i);
+            printOccProbs(allSites,10);
+
         }
-        std::cout << "\nInput column index of V to view occupation probabilities (non-int to exit): ";   
+        std::cout << "\nInput column index of V to view occupation probabilities (non-int to exit)\n"; 
+        std::cout << "\nMax is " << V->size2 - 1 << " : ";
+
     }
 
     // Free memory

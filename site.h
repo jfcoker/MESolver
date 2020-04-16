@@ -15,12 +15,14 @@ private:
 		site* _pSite; 
 		double _J;
 	};
-
-	vec pos;
+	
 	double energy;
 	std::vector<neighbour*> neighbours;
 
 public:
+	
+	vec pos;
+	double occProb = 0;
 	
 	// Construct a site object
 	site(double x, double y, double z, double energy);

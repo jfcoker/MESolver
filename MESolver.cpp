@@ -51,20 +51,23 @@ int main()
     gsl_vector* work = gsl_vector_alloc(M);
     int result = gsl_linalg_SV_decomp(A, V, S, work);
 
-    std::cout << "\nU = \n";
-    printMatrix(A);
 
-    std::cout << "\nS = \n";
+    std::cout << "\nSingular values = \n";
     printVector(S,false);
 
-    std::cout << "\nV = \n";
-    printMatrix(V);
+    std::cout << "\nFor now, assume the smallest singular value corresponds to the null space of A. (Sensible tolerance to be determined).\n"
+        << "\nThe steady state solution for occupation probabilities is therfore: \n"
+        << "\nP =\n";
+    gsl_vector* P = gsl_vector_alloc(M);
+    gsl_matrix_get_col(P, V, gsl_vector_min_index(S));
+    printVector(P);
 
     // Free memory
     gsl_matrix_free(A);
     gsl_matrix_free(V);
     gsl_vector_free(S);
     gsl_vector_free(work);
+    gsl_vector_free(P);
 
     return 0;
 }

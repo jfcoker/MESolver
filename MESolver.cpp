@@ -20,9 +20,9 @@ ArraySize CmdLineParser(int argc, char* argv[])
     if (argc != 4 || rtn.X == 0 || rtn.Y == 0 || rtn.Z == 0) 
     {
         // Hardcoded default values
-        rtn.X = 5;
-        rtn.Y = 5;
-        rtn.Z = 25;
+        rtn.X = 3;
+        rtn.Y = 3;
+        rtn.Z = 15;
     }
 
     return rtn;
@@ -84,7 +84,7 @@ int main(int arg, char* argv[])
             gsl_matrix_get_col(P, V, col);
             for (int i = 0; i < P->size; i++) 
                 allSites[i].occProb = gsl_vector_get(P, i);
-            printOccProbs(allSites,10);
+            printOccProbs(allSites);
 
         }
 

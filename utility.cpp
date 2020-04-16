@@ -64,46 +64,26 @@ void printDiagonal(gsl_matrix* m, bool horizontal)
     gsl_vector_free(V);
 }
 
-void printOccProbs(std::vector<site>& sites, double period)
+void printOccProbs(std::vector<site>& sites)
 {
-    std::stringstream sstream;
-    sstream.setf(std::ios::scientific);
-    sstream.precision(2);
+    std::stringstream sstreamXYZ;
+    sstreamXYZ.setf(std::ios::fixed);
+    sstreamXYZ.precision(0);
 
-    //for (size_t i = 0; i < v->size; i++)
-    //{
-    //    double el = gsl_vector_get(v, i);
-    //    if (el) sstream << el; else sstream << "0";
-    //    if (i < v->size - 1) sstream << ", ";
-    //}
-    //sstream << "\n";
+    std::stringstream sstreamProbs;
+    sstreamProbs.setf(std::ios::scientific);
+    sstreamProbs.precision(2);
 
-
-    double el;
-    el = sites[0].occProb;
-    if (el) sstream << el; else sstream << "0";
-
-    for (int i = 1; i < sites.size(); i++)
+    for (int i = 0; i < sites.size(); i++)
     {
-        if (std::abs(sites[i].pos.Z - sites[i - 1].pos.Z) > period / 2)
-        {
-            sstream << "\n";
-            std::cout << sstream.str();
-            sstream.str("");
+        sstreamXYZ << std::setw(6) << std::left << sites[i].pos.X
+            << std::setw(6) << std::left << sites[i].pos.Y
+            << std::setw(6) << std::left << sites[i].pos.Z;
+        sstreamProbs << sites[i].occProb;
 
-        } else
-        if (std::abs(sites[i].pos.Y - sites[i - 1].pos.Y) > period / 2)
-        {
-            sstream << "          ";
-        }
-
-
-        sstream << std::setw(10) << std::left;
-        el = sites[i].occProb;
-        if (el) sstream << el; else sstream << "0";
-
+        std::cout << sstreamXYZ.str() << sstreamProbs.str() << "\n";
+        sstreamXYZ.str("");
+        sstreamProbs.str("");
     }
-
-    std::cout << sstream.str();
 
 }

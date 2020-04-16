@@ -53,7 +53,7 @@ int main(int arg, char* argv[])
             }
 
             else
-                gsl_matrix_set(A, i, f, allSites[f].Rate(&allSites[i])); // May need to switch i and f (will ok make a difference if rates are non-symmetric)?
+                gsl_matrix_set(A, i, f, allSites[f].Rate(&allSites[i])); // May need to switch i and f (will only make a difference if rates are non-symmetric)?
         }
 
     //std::cout << "\nA = \n";

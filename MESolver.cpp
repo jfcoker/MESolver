@@ -68,7 +68,7 @@ int main(int arg, char* argv[])
 
     std::cout << "\nSingular values (limited to 10 smallest) = \n";
     printVector(S, false);
-    std::cout << "\nInput column index of V to view (non-int to exit): ";
+    std::cout << "\nInput column index of V to view occupation probabilities (non-int to exit): ";
 
     size_t col;
     while (std::cin >> col)
@@ -83,7 +83,7 @@ int main(int arg, char* argv[])
             gsl_matrix_get_col(P, V, col);
             printVector(P);
         }
-        std::cout << "\nInput column index of V to view (non-int to exit): ";   
+        std::cout << "\nInput column index of V to view occupation probabilities (non-int to exit): ";   
     }
 
     // Free memory

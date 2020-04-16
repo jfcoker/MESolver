@@ -49,8 +49,7 @@ int main()
     gsl_matrix* V = gsl_matrix_alloc(M, M);
     gsl_vector* S = gsl_vector_alloc(M);
     gsl_vector* work = gsl_vector_alloc(M);
-    int result = gsl_linalg_SV_decomp(A, V, S, work);
-
+    gsl_linalg_SV_decomp(A, V, S, work);
 
     std::cout << "\nSingular values = \n";
     printVector(S,false);

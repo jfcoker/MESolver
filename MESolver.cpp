@@ -56,8 +56,8 @@ int main(int arg, char* argv[])
                 gsl_matrix_set(A, i, f, allSites[f].Rate(&allSites[i])); // May need to switch i and f (will ok make a difference if rates are non-symmetric)?
         }
 
-    std::cout << "\nA = \n";
-    printMatrix(A);
+    //std::cout << "\nA = \n";
+    //printMatrix(A);
 
     std::cout << "\nSolving ME using SVD...\n";
     gsl_matrix* V = gsl_matrix_alloc(M, M);
@@ -91,22 +91,29 @@ std::vector<site> CreateSites(size_t X, size_t Y, size_t Z)
 
     // For now, hardcode some information about the array
     double E = 0.0;
+    double Etrap = 1.0;
     double periodX = 10.0, periodY = 10.0, periodZ = 10.0;
-
     
     double sizeX = (X - 1)*periodX, sizeY = (Y - 1)*periodY, sizeZ = (Z - 1)*periodZ;
 
-    // axis index
+    // Current site index
+    int i_p = 0;
+
+    // axis indices
     int i_x = 0, i_y = 0, i_z = 0;
 
-    // Create sites. Currently just using a cubic array. 
+    // Create sites. Currently just using a cubic array.
     while (i_z * periodZ <= sizeZ)
     {
         while (i_y * periodY <= sizeY)
         {
             while (i_x * periodX <= sizeX)
             {
-                sites.push_back(site(i_x * periodX, i_y * periodY, i_z * periodZ, E));
+                // Make every 7th site a trap.
+                double tmp;
+                if (i_p % 7 == 0) tmp = Etrap; else tmp = E;
+                sites.push_back(site(i_x * periodX, i_y * periodY, i_z * periodZ, tmp));
+                i_p++;
                 i_x++;
             }
             i_x = 0;
@@ -119,15 +126,12 @@ std::vector<site> CreateSites(size_t X, size_t Y, size_t Z)
     // Assign interacting neighbours. Currently we are just using the up-to 6 nearest neighbours.
     double J = 0.1;
 
-    i_x = 0, i_y = 0, i_z = 0;
+    i_p = 0; i_x = 0, i_y = 0, i_z = 0;
 
     // highest index in each direction
     size_t n_x = (int)std::floor(sizeX / periodX);
     size_t n_y = (int)std::floor(sizeY / periodY);
     size_t n_z = (int)std::floor(sizeZ / periodZ);
-
-    // Current site index
-    size_t i_p = 0;
 
     while (i_z * periodZ <= sizeZ)
     {

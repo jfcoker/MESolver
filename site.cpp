@@ -1,13 +1,13 @@
 #include "pch.h"
 #include "site.h"
+#include "consts.h"
 
-site::site(double x, double y, double z, double E, bool isTrap) 
+site::site(double x, double y, double z, double E) 
 {
     pos.X = x;
     pos.Y = y;
     pos.Z = z;
     energy = E;
-    trap = isTrap;
 }
 
 void site::addNeighbour(site* pSite, double J)
@@ -42,7 +42,7 @@ site::neighbour* site::hasNeighbour(site* pSite)
     return NULL;
 }
 
-double site::Rate(site* pSite)
+double site::Rate(site* pSite, double fieldZ, double kBT, double reorg)
 {
     neighbour* pN = this->hasNeighbour(pSite);
 
@@ -52,7 +52,7 @@ double site::Rate(site* pSite)
     else
     {
         double J2 = std::pow(pN->_J,2); // |J_if|^2
-        double deltaE = (pSite->energy - this->energy) + e * (pSite->pos.Z - this->pos.Z) * F_Z; // deltaE = (ep_f - ep_i) + e * [M_f.Z - M_i.Z] * F_z
+        double deltaE = (pSite->energy - this->energy) + e * (pSite->pos.Z - this->pos.Z) * fieldZ; // deltaE = (ep_f - ep_i) + e * [M_f.Z - M_i.Z] * F_z
         return ((2 * pi) / hbar) * J2 * std::pow(4 * pi * reorg * kBT, -0.5) * std::exp(-1 * std::pow(deltaE + reorg, 2) / (4 * reorg * kBT));
     }
 }

@@ -1,7 +1,5 @@
 #pragma once
-
 #include "pch.h"
-#include "simConsts.h"
 
 class site 
 {
@@ -23,10 +21,9 @@ public:
 	
 	vec pos;
 	double occProb = 0;
-	bool trap = false;
 	
 	// Construct a site object
-	site(double x, double y, double z, double energy, bool isTrap);
+	site(double x, double y, double z, double energy);
 
 	// Give this site a pointer to another site which it interacts with, alongside the associated transfer integral
 	void addNeighbour(site* pSite, double J);
@@ -38,7 +35,7 @@ public:
 
 	// Calcualte the transfer rate between this site (as initial), and the site passed as pointer (as final).
 	// If the passed site is not in the list of interacting neighbours, the rate will be zero.
-	double Rate(site* pSite);
+	double Rate(site* pSite, double fieldZ, double kBT, double reorg);
 
 	~site();
 
@@ -49,6 +46,8 @@ public:
 // Arguments specify number of sites in each dimension.
 // Currently seperation is hardcoded to 10 Ang.
 std::vector<site> CreateSites(size_t X, size_t Y, size_t Z);
+
+std::vector<site> CreateSites(char* XYZfile, char* EDGEfile);
 
 
 

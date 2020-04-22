@@ -44,7 +44,7 @@ site::neighbour* site::hasNeighbour(site* pSite)
 
 double site::deltaE(site* pSite, double fieldZ)
 {
-    double deltaE = (pSite->energy - this->energy) + (pSite->pos.Z - this->pos.Z) * fieldZ; // deltaE = (ep_f - ep_i) + e * [M_f.Z - M_i.Z] * F_z
+    return (pSite->energy - this->energy) + (pSite->pos.Z - this->pos.Z) * fieldZ; // deltaE = (ep_f - ep_i) + e * [M_f.Z - M_i.Z] * F_z
 }
 
 double site::Rate(site* pSite, double fieldZ, double kBT, double reorg)

@@ -42,6 +42,11 @@ site::neighbour* site::hasNeighbour(site* pSite)
     return NULL;
 }
 
+double site::deltaE(site* pSite, double fieldZ)
+{
+    double deltaE = (pSite->energy - this->energy) + (pSite->pos.Z - this->pos.Z) * fieldZ; // deltaE = (ep_f - ep_i) + e * [M_f.Z - M_i.Z] * F_z
+}
+
 double site::Rate(site* pSite, double fieldZ, double kBT, double reorg)
 {
     neighbour* pN = this->hasNeighbour(pSite);
@@ -52,7 +57,7 @@ double site::Rate(site* pSite, double fieldZ, double kBT, double reorg)
     else
     {
         double J2 = std::pow(pN->_J,2); // |J_if|^2
-        double deltaE = (pSite->energy - this->energy) + (pSite->pos.Z - this->pos.Z) * fieldZ; // deltaE = (ep_f - ep_i) + e * [M_f.Z - M_i.Z] * F_z
+        double deltaE = this->deltaE(pSite, fieldZ);
         return ((2 * pi) / hbar) * J2 * std::pow(4 * pi * reorg * kBT, -0.5) * std::exp(-1 * std::pow(deltaE + reorg, 2) / (4 * reorg * kBT));
     }
 }

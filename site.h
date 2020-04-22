@@ -13,12 +13,14 @@ private:
 		site* _pSite; 
 		double _J;
 	};
-	
-	double energy;
+
 	std::vector<neighbour*> neighbours;
 
+	// The site energy.
+	double energy;
+
 public:
-	
+
 	vec pos;
 	double occProb = 0;
 	
@@ -33,7 +35,10 @@ public:
 	// Otherwise return NULL
 	neighbour* hasNeighbour(site* pSite);
 
-	// Calcualte the transfer rate between this site (as initial), and the site passed as pointer (as final).
+	// Calculate the energetic drive force for the transfer of a charge from this site (as initial) to the site passed as pointer (as final).
+	double deltaE(site* pSite, double fieldZ);
+
+	// Calculate the transfer rate between this site (as initial), and the site passed as pointer (as final).
 	// If the passed site is not in the list of interacting neighbours, the rate will be zero.
 	double Rate(site* pSite, double fieldZ, double kBT, double reorg);
 

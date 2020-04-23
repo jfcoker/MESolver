@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
     printMatrix(A);
 
     double orderOfMag = floor(log10(gsl_matrix_max(A)));
-    std::cout << "\nTo reduced precision errors, we scale A by 1e-" << orderOfMag << "\n";
+    std::cout << "\nTo reduce precision errors, we scale A by 1e-" << orderOfMag << "\n";
     std::cout << "Reduced A = \n";
     gsl_matrix_scale(A, pow(10, -orderOfMag));
     printMatrix(A);

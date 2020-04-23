@@ -12,7 +12,7 @@ const char* label_T = "temp"; // Temperature
 const char* label_reorg = "reorg"; // Reorganisation energy
 
 // Other
-const double threshold = 1; // disregard null spaces with associated singular values above this threshold.
+const double threshold = 1e-10; // disregard null spaces with associated singular values above this threshold.
 
 int main(int argc, char* argv[])
 {
@@ -67,18 +67,58 @@ int main(int argc, char* argv[])
         }
     printMatrix(A);
 
+    double orderOfMag = floor(log10(gsl_matrix_max(A)));
+    std::cout << "\nTo reduced precision errors, we scale A by 1e-" << orderOfMag << "\n";
+    std::cout << "Reduced A = \n";
+    gsl_matrix_scale(A, pow(10, -orderOfMag));
+    printMatrix(A);
+
     std::cout << "\nSolving ME using SVD...\n";
+    gsl_matrix* U = gsl_matrix_alloc(M, M);
     gsl_matrix* V = gsl_matrix_alloc(M, M);
+    gsl_matrix* VT = gsl_matrix_alloc(M, M);
     gsl_vector* S = gsl_vector_alloc(M);
+    gsl_matrix* Sigma = gsl_matrix_alloc(M, M);
     gsl_vector* work = gsl_vector_alloc(M);
     gsl_vector* P = gsl_vector_alloc(M);
-    gsl_linalg_SV_decomp(A, V, S, work);
+    gsl_matrix* UxSigma = gsl_matrix_alloc(M, M);
+    gsl_matrix* UxSigmaxVT = gsl_matrix_alloc(M, M);
+    gsl_vector* AxP = gsl_vector_alloc(M);
+
+    gsl_matrix_memcpy(U, A);
+    gsl_linalg_SV_decomp(U, V, S, work);
+    gsl_matrix_transpose_memcpy(VT, V);
+
+    //Create Sigma matrix
+    gsl_matrix_set_zero(Sigma);
+    for (int i = 0; i < M; i++)
+        gsl_matrix_set(Sigma, i, i, gsl_vector_get(S, i));
+
+
+    std::cout << "\nU = \n";
+    printMatrix(U);
+
 
     std::cout << "\nSingular values = \n";
     printVector(S, false);
+
+
+    std::cout << "\nV = \n";
+    printMatrix(V);
+
+
+    std::cout << "\nV^T = \n";
+    printMatrix(VT);
+
+
+    std::cout << "\nCHECK: does U x Sigma x VT = A?\nU x Sigma x VT =\n";
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, U, Sigma, 0.0, UxSigma);
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, UxSigma, VT, 0.0, UxSigmaxVT);
+    printMatrix(UxSigmaxVT);
+
+
     std::cout << "\nDisregarding singular values greater than threshold = " << threshold << "\n";
     std::cout << "\nPrinting possible solutions\n\n";
-
     for (int i = 0; i < S->size; i++)
     {
         int solnum = 1;
@@ -86,9 +126,14 @@ int main(int argc, char* argv[])
         {
             std::cout << "Solution " << solnum++ << ": \n";
             gsl_matrix_get_col(P, V, i);
-            for (int i = 0; i < P->size; i++) 
-                allSites[i].occProb = gsl_vector_get(P, i);
+            for (int j = 0; j < P->size; j++) 
+                allSites[j].occProb = gsl_vector_get(P, j);
             printOccProbs(allSites);
+
+            std::cout << "\nCHECK: is P a solution?\nA x P =\n";
+            gsl_blas_dgemv(CblasNoTrans, 1.0, A, P, 0.0, AxP);
+            printVector(AxP);
+
         }
     }
 
@@ -122,10 +167,16 @@ int main(int argc, char* argv[])
 
     // Free memory
     gsl_matrix_free(A);
+    gsl_matrix_free(U);
     gsl_matrix_free(V);
+    gsl_matrix_free(VT);
     gsl_vector_free(S);
+    gsl_matrix_free(Sigma);
     gsl_vector_free(work);
     gsl_vector_free(P);
+    gsl_matrix_free(UxSigma);
+    gsl_matrix_free(UxSigmaxVT);
+    gsl_vector_free(AxP);
 
     return 0;
 }

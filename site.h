@@ -35,7 +35,7 @@ public:
 	// Otherwise return NULL
 	neighbour* hasNeighbour(site* pSite);
 
-	// Calculate the energetic drive force for the transfer of a charge from this site (as initial) to the site passed as pointer (as final).
+	// Calculate the energetic driving force for the transfer of a charge from this site (as initial) to the site passed as pointer (as final).
 	double deltaE(site* pSite, double fieldZ);
 
 	// Calculate the transfer rate between this site (as initial), and the site passed as pointer (as final).

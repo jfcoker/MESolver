@@ -118,13 +118,13 @@ int main(int argc, char* argv[])
 
 
     std::cout << "\nDisregarding singular values greater than threshold = " << threshold << "\n";
-    std::cout << "\nPrinting possible solutions\n\n";
+    std::cout << "\nPrinting possible solutions\n";
+    int solnum = 1;
     for (int i = 0; i < S->size; i++)
     {
-        int solnum = 1;
         if (gsl_vector_get(S, i) <= threshold)
         {
-            std::cout << "Solution " << solnum++ << ": \n";
+            std::cout << "\n\nSolution " << solnum++ << ": \n";
             gsl_matrix_get_col(P, V, i);
             for (int j = 0; j < P->size; j++) 
                 allSites[j].occProb = gsl_vector_get(P, j);

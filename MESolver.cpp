@@ -11,9 +11,6 @@ const char* label_F_z = "fieldZ"; // Electric field strength in Z direction.
 const char* label_T = "temp"; // Temperature
 const char* label_reorg = "reorg"; // Reorganisation energy
 
-// Other
-const double threshold = 1e-10; // disregard null spaces with associated singular values above this threshold.
-
 int main(int argc, char* argv[])
 {
     //Parse command line parameters.
@@ -115,8 +112,10 @@ int main(int argc, char* argv[])
     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, U, Sigma, 0.0, UxSigma);
     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, UxSigma, VT, 0.0, UxSigmaxVT);
     printMatrix(UxSigmaxVT);
-
-
+    
+    const double threshold = std::numeric_limits<double>::epsilon() * 
+                             std::max(std::max(gsl_matrix_max(U),std::abs(gsl_matrix_min(U))),
+                                      std::max(gsl_matrix_max(V), std::abs(gsl_matrix_min(V))));
     std::cout << "\nDisregarding singular values greater than threshold = " << threshold << "\n";
     std::cout << "\nPrinting possible solutions\n";
     int solnum = 1;

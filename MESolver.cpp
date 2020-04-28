@@ -11,6 +11,9 @@ const char* label_F_z = "fieldZ"; // Electric field strength in Z direction.
 const char* label_T = "temp"; // Temperature
 const char* label_reorg = "reorg"; // Reorganisation energy
 
+// Output formatting options
+bool verbose = false;
+
 int main(int argc, char* argv[])
 {
     //Parse command line parameters.
@@ -24,6 +27,7 @@ int main(int argc, char* argv[])
         if (strstr(argv[i], ".xyz"))  strcpy_s(xyz, argv[i]);
         if (strstr(argv[i], ".edge")) strcpy_s(edge, argv[i]);
         if (strstr(argv[i], ".occ")) strcpy_s(occ, argv[i]);
+        if (strcmp(argv[i], "-v") == 0) verbose = true;
     }
 
     std::cout << "Taking input from " << sim << ", " << xyz << ", " << edge << " ...\n";
@@ -62,13 +66,17 @@ int main(int argc, char* argv[])
             else
                 gsl_matrix_set(A, i, f, allSites[f].Rate(&allSites[i], F_z, kBT, reorg)); // May need to switch i and f?
         }
-    printMatrix(A);
+
+    if (verbose) printMatrix(A);
 
     double orderOfMag = floor(log10(gsl_matrix_max(A)));
-    std::cout << "\nTo reduce precision errors, we scale A by 1e-" << orderOfMag << "\n";
-    std::cout << "Reduced A = \n";
     gsl_matrix_scale(A, pow(10, -orderOfMag));
-    printMatrix(A);
+    if (verbose) 
+    {
+        std::cout << "\nTo reduce precision errors, we scale A by 1e-" << orderOfMag << "\n";
+        std::cout << "Reduced A = \n";
+        printMatrix(A);
+    }
 
     std::cout << "\nSolving ME using SVD...\n";
     gsl_matrix* U = gsl_matrix_alloc(M, M);
@@ -91,27 +99,31 @@ int main(int argc, char* argv[])
     for (int i = 0; i < M; i++)
         gsl_matrix_set(Sigma, i, i, gsl_vector_get(S, i));
 
-
-    std::cout << "\nU = \n";
-    printMatrix(U);
-
+    if (verbose)
+    {
+        std::cout << "\nU = \n";
+        printMatrix(U);
+    }
 
     std::cout << "\nSingular values = \n";
     printVector(S, false);
 
-
-    std::cout << "\nV = \n";
-    printMatrix(V);
-
-
-    std::cout << "\nV^T = \n";
-    printMatrix(VT);
+    if (verbose)
+    {
+        std::cout << "\nV = \n";
+        printMatrix(V);
 
 
-    std::cout << "\nCHECK: does U x Sigma x VT = A?\nU x Sigma x VT =\n";
-    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, U, Sigma, 0.0, UxSigma);
-    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, UxSigma, VT, 0.0, UxSigmaxVT);
-    printMatrix(UxSigmaxVT);
+        std::cout << "\nV^T = \n";
+        printMatrix(VT);
+
+
+        std::cout << "\nCHECK: does U x Sigma x VT = A?\nU x Sigma x VT =\n";
+        gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, U, Sigma, 0.0, UxSigma);
+        gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, UxSigma, VT, 0.0, UxSigmaxVT);
+        printMatrix(UxSigmaxVT);
+    }
+
     
     const double threshold = std::numeric_limits<double>::epsilon() * 
                              std::max(std::max(gsl_matrix_max(U),std::abs(gsl_matrix_min(U))),
@@ -129,9 +141,12 @@ int main(int argc, char* argv[])
                 allSites[j].occProb = gsl_vector_get(P, j);
             printOccProbs(allSites);
 
-            std::cout << "\nCHECK: is P a solution?\nA x P =\n";
-            gsl_blas_dgemv(CblasNoTrans, 1.0, A, P, 0.0, AxP);
-            printVector(AxP);
+            if (verbose)
+            {
+                std::cout << "\nCHECK: is P a solution?\nA x P =\n";
+                gsl_blas_dgemv(CblasNoTrans, 1.0, A, P, 0.0, AxP);
+                printVector(AxP);
+            }
 
         }
     }

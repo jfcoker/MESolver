@@ -64,7 +64,7 @@ void printDiagonal(gsl_matrix* m, bool horizontal)
     gsl_vector_free(V);
 }
 
-void printOccProbs(std::vector<site>& sites)
+void printOccProbs(std::vector<site>& sites, int precision)
 {
     std::stringstream sstreamXYZ;
     sstreamXYZ.setf(std::ios::fixed);
@@ -72,7 +72,7 @@ void printOccProbs(std::vector<site>& sites)
 
     std::stringstream sstreamProbs;
     sstreamProbs.setf(std::ios::scientific);
-    sstreamProbs.precision(2);
+    sstreamProbs.precision(precision);
 
     for (int i = 0; i < sites.size(); i++)
     {

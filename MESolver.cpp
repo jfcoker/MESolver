@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
             std::cout << "Occupation densities\n";
             for (int j = 0; j < Q->size; j++)
                 allSites[j].occProb = gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT, precondition);
-            printOccProbs(allSites);
+            printOccProbs(allSites,2);
 
             //if (verbose)
             //{

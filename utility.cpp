@@ -87,3 +87,14 @@ void printOccProbs(std::vector<site>& sites, int precision)
     }
 
 }
+
+void normalise(gsl_vector* v)
+{
+    // Find quadrature sum
+    double qsum = 0;
+    for (int i = 0; i < v->size; i++)
+        qsum += pow(gsl_vector_get(v, i), 2);
+
+    // Rescale all elements by 1/sum
+    gsl_vector_scale(v, 1.0 / sqrt(qsum));
+}

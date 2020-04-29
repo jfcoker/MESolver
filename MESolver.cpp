@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     if (verbose)
     {
         printMatrix(A);
-        std::cout << "Values:\nMax = " << gsl_matrix_max(A) << "\nMin = " << gsl_matrix_min(A) << "\nRange = " << gsl_matrix_max(A) - gsl_matrix_min(A) << "\n";
+        std::cout << "\nValues:\nMax = " << gsl_matrix_max(A) << "\nMin = " << gsl_matrix_min(A) << "\nRange = " << gsl_matrix_max(A) - gsl_matrix_min(A) << "\n";
         std::cout << "\nOrder of magnitude:\nHighest = " << highestO << "\nLowest = " << lowestO << "\nDiff = " << highestO - lowestO << "\n";
     }
 
@@ -186,11 +186,22 @@ int main(int argc, char* argv[])
             if (precondition) {
                 std::cout << "\nConditioned densities\n";
                 printVector(Q);
+
+                // Reverse preconditioning
+                for (int j = 0; j < Q->size; j++)
+                    gsl_vector_set(Q, j, gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT, precondition));
+
+                // Renormalise so squared values add to 1
+                normalise(Q);
             }
-            std::cout << "Occupation densities\n";
+
+            // If largest value is negative then flip all signs.
+            if (abs(gsl_vector_min(Q)) > gsl_vector_max(Q)) gsl_vector_scale(Q, -1.0);
+
+            std::cout << "\nOccupation densities\n";
             for (int j = 0; j < Q->size; j++)
-                allSites[j].occProb = gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT, precondition);
-            printOccProbs(allSites,2);
+                allSites[j].occProb = gsl_vector_get(Q, j);
+            printOccProbs(allSites, 2);
 
             //if (verbose)
             //{

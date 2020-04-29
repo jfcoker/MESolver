@@ -13,6 +13,10 @@ const char* label_reorg = "reorg"; // Reorganisation energy
 
 // Output formatting options
 bool verbose = false;
+bool precondition = false;
+bool rescale = false;
+bool tol_auto = true;
+double tolerance = 0;
 
 int main(int argc, char* argv[])
 {
@@ -23,14 +27,28 @@ int main(int argc, char* argv[])
     }
     char sim[128], xyz[128], edge[128], occ[128];
     for (int i = 1; i < argc; i++) {
+        
+        // Input files
         if (strstr(argv[i], ".sim"))  strcpy_s(sim, argv[i]);
         if (strstr(argv[i], ".xyz"))  strcpy_s(xyz, argv[i]);
         if (strstr(argv[i], ".edge")) strcpy_s(edge, argv[i]);
         if (strstr(argv[i], ".occ")) strcpy_s(occ, argv[i]);
+
+        // Options
         if (strcmp(argv[i], "-v") == 0) verbose = true;
+        if (strcmp(argv[i], "--precondition") == 0) precondition = true;
+        if (strcmp(argv[i], "--rescale") == 0) rescale = true;
+        if (strstr(argv[i], "--tol"))
+        {
+            char* substr = strchr(argv[i], '='); // Extract substring of all characters after and including '='
+            tolerance = atof(++substr); // Increment to get rid of '=' char, then attempt to convert to double
+            if (tolerance) tol_auto = false; // If parsed value is non-zero and interpretable, then use as tolerance
+        }
     }
 
     std::cout << "Taking input from " << sim << ", " << xyz << ", " << edge << " ...\n";
+    std::cout << "Verbosity "; if (verbose) std::cout << "high\n"; else std::cout << "low\n";
+    std::cout << "Singular value threshold = "; if (tol_auto) std::cout << "auto\n"; else std::cout << tolerance << "\n";
 
     std::cout << "\nReading simulation parameters...\n";
     const double F_z = ReadParameter(sim, label_F_z); // V/Ang
@@ -48,34 +66,58 @@ int main(int argc, char* argv[])
     for (int i = 0; i < M; i++)
         std::cout << allSites[i] << std::endl;
 
-    std::cout << "\nCreating rate matrix A...\n";
+    if (precondition) std::cout << "\nCreating preconditioned rate matrix A...\n";
+    else std::cout << "\nCreating rate matrix A...\n";
+
     gsl_matrix* A = gsl_matrix_alloc(M, M);
     gsl_matrix_set_zero(A);
+    double highestO = -999;
+    double lowestO = 999;
+    double orderOfMag;
     for (int i = 0; i < M; i++)
         for (int f = 0; f < M; f++)
         {
+            double el = 0;
             if (i == f)
             {
                 double sum = 0.0;
                 for (int k = 0; k < M; k++)
                     if (i != k)
-                        sum += allSites[i].Rate(&allSites[k], F_z, kBT, reorg);
-                gsl_matrix_set(A, i, f, -sum);
+                        sum += allSites[i].Rate(&allSites[k], F_z, kBT, reorg) * allSites[i].PrecondFactor(F_z, kBT, precondition);
+                el = -sum;
             }
-
             else
-                gsl_matrix_set(A, i, f, allSites[f].Rate(&allSites[i], F_z, kBT, reorg)); // May need to switch i and f?
+            {
+                el = allSites[f].Rate(&allSites[i], F_z, kBT, reorg) * allSites[f].PrecondFactor(F_z, kBT, precondition); // May need to switch i and f?
+            }
+            gsl_matrix_set(A, i, f, el);
+            if (el) // Check el is non-zero otherwise lowestO will equal -inf
+            {
+                orderOfMag = floor(log10(abs(el)));
+                if (orderOfMag > highestO) highestO = orderOfMag;
+                if (orderOfMag < lowestO) lowestO = orderOfMag;
+            }
         }
 
-    if (verbose) printMatrix(A);
-
-    double orderOfMag = floor(log10(gsl_matrix_max(A)));
-    gsl_matrix_scale(A, pow(10, -orderOfMag));
-    if (verbose) 
+    if (verbose)
     {
-        std::cout << "\nTo reduce precision errors, we scale A by 1e-" << orderOfMag << "\n";
-        std::cout << "Reduced A = \n";
         printMatrix(A);
+        std::cout << "Values:\nMax = " << gsl_matrix_max(A) << "\nMin = " << gsl_matrix_min(A) << "\nRange = " << gsl_matrix_max(A) - gsl_matrix_min(A) << "\n";
+        std::cout << "\nOrder of magnitude:\nHighest = " << highestO << "\nLowest = " << lowestO << "\nDiff = " << highestO - lowestO << "\n";
+    }
+
+
+ 
+    if (rescale)
+    {
+        std::cout << "\nTo reduce precision errors, rescale A by 1e-" << highestO << "\n";
+        gsl_matrix_scale(A, pow(10, -highestO));
+
+        if (verbose)
+        {
+            std::cout << "Reduced A = \n";
+            printMatrix(A);
+        }
     }
 
     std::cout << "\nSolving ME using SVD...\n";
@@ -85,7 +127,7 @@ int main(int argc, char* argv[])
     gsl_vector* S = gsl_vector_alloc(M);
     gsl_matrix* Sigma = gsl_matrix_alloc(M, M);
     gsl_vector* work = gsl_vector_alloc(M);
-    gsl_vector* P = gsl_vector_alloc(M);
+    gsl_vector* Q = gsl_vector_alloc(M);
     gsl_matrix* UxSigma = gsl_matrix_alloc(M, M);
     gsl_matrix* UxSigmaxVT = gsl_matrix_alloc(M, M);
     gsl_vector* AxP = gsl_vector_alloc(M);
@@ -124,33 +166,41 @@ int main(int argc, char* argv[])
         printMatrix(UxSigmaxVT);
     }
 
-    
-    const double threshold = std::numeric_limits<double>::epsilon() * 
-                             std::max(std::max(gsl_matrix_max(U),std::abs(gsl_matrix_min(U))),
-                                      std::max(gsl_matrix_max(V), std::abs(gsl_matrix_min(V))));
-    std::cout << "\nDisregarding singular values greater than threshold = " << threshold << "\n";
-    std::cout << "\nPrinting possible solutions\n";
-    int solnum = 1;
+    if (tol_auto)
+        tolerance = std::numeric_limits<double>::epsilon() * 
+                    std::max(std::max(gsl_matrix_max(U),std::abs(gsl_matrix_min(U))),
+                             std::max(gsl_matrix_max(V), std::abs(gsl_matrix_min(V))));
+
+    std::cout << "\n\nDisregarding singular values greater than threshold = " << tolerance << "\n";
+    std::cout << "Printing possible solutions\n";
+    int solnum = 0;
     for (int i = 0; i < S->size; i++)
     {
-        if (gsl_vector_get(S, i) <= threshold)
+        double sval = gsl_vector_get(S, i);
+        if (sval <= tolerance)
         {
-            std::cout << "\n\nSolution " << solnum++ << ": \n";
-            gsl_matrix_get_col(P, V, i);
-            for (int j = 0; j < P->size; j++) 
-                allSites[j].occProb = gsl_vector_get(P, j);
+            ++solnum;
+            std::cout << "\n\nPossible solution " << solnum << " : singular value = " << sval << "\n";
+
+            gsl_matrix_get_col(Q, V, i);
+            if (precondition) {
+                std::cout << "\nConditioned densities\n";
+                printVector(Q);
+            }
+            std::cout << "Occupation densities\n";
+            for (int j = 0; j < Q->size; j++)
+                allSites[j].occProb = gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT, precondition);
             printOccProbs(allSites);
 
-            if (verbose)
-            {
-                std::cout << "\nCHECK: is P a solution?\nA x P =\n";
-                gsl_blas_dgemv(CblasNoTrans, 1.0, A, P, 0.0, AxP);
-                printVector(AxP);
-            }
+            //if (verbose)
+            //{
+            //    std::cout << "\nCHECK: is P a solution?\nA x P =\n";
+            //    gsl_blas_dgemv(CblasNoTrans, 1.0, A, P, 0.0, AxP);
+            //    printVector(AxP);
+            //}
 
         }
     }
-
 
     //######## Uncomment to be able to interactively select columns from V ##############
     //std::cout << "\nInput column index of V to view occupation probabilities (non-int to exit)\n";
@@ -187,7 +237,7 @@ int main(int argc, char* argv[])
     gsl_vector_free(S);
     gsl_matrix_free(Sigma);
     gsl_vector_free(work);
-    gsl_vector_free(P);
+    gsl_vector_free(Q);
     gsl_matrix_free(UxSigma);
     gsl_matrix_free(UxSigmaxVT);
     gsl_vector_free(AxP);

@@ -62,6 +62,14 @@ double site::Rate(site* pSite, double fieldZ, double kBT, double reorg)
     }
 }
 
+double site::PrecondFactor(double fieldZ, double kBT, bool apply)
+{
+    if (apply)
+        return std::exp(-1 * (this->energy + this->pos.Z * fieldZ) / kBT);
+    else
+        return 1.0;
+}
+
 site::~site()
 {
     std::vector<neighbour*>::iterator it = neighbours.begin();

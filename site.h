@@ -16,13 +16,15 @@ private:
 
 	std::vector<neighbour*> neighbours;
 
-	// The site energy.
-	double energy;
+
 
 public:
 
 	vec pos;
 	double occProb = 0;
+
+	// The site energy.
+	double energy;
 	
 	// Construct a site object
 	site(double x, double y, double z, double energy);
@@ -41,6 +43,10 @@ public:
 	// Calculate the transfer rate between this site (as initial), and the site passed as pointer (as final).
 	// If the passed site is not in the list of interacting neighbours, the rate will be zero.
 	double Rate(site* pSite, double fieldZ, double kBT, double reorg);
+
+	// Calculate the preconditioning factor.
+	// This is used to transform the rate matrix into a form more suitable for solving numerically.
+	double PrecondFactor(double fieldZ, double kBT, bool apply);
 
 	~site();
 

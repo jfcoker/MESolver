@@ -46,7 +46,7 @@ public:
 
 	// Calculate the preconditioning factor.
 	// This is used to transform the rate matrix into a form more suitable for solving numerically.
-	double PrecondFactor(double fieldZ, double kBT, bool apply);
+	double PrecondFactor(double fieldZ, double kBT, double E0, bool apply);
 
 	~site();
 

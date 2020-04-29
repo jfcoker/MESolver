@@ -62,10 +62,10 @@ double site::Rate(site* pSite, double fieldZ, double kBT, double reorg)
     }
 }
 
-double site::PrecondFactor(double fieldZ, double kBT, bool apply)
+double site::PrecondFactor(double fieldZ, double kBT, double E0, bool apply)
 {
     if (apply)
-        return std::exp(-1 * (this->energy + this->pos.Z * fieldZ) / kBT);
+        return std::exp((E0 - (this->energy + this->pos.Z * fieldZ)) / kBT);
     else
         return 1.0;
 }

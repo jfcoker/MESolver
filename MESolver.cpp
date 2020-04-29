@@ -16,7 +16,8 @@ bool verbose = false;
 bool precondition = false;
 bool rescale = false;
 bool tol_auto = true;
-double tolerance = 0;
+double tolerance = 0.0;
+double transE = 0.0;
 
 int main(int argc, char* argv[])
 {
@@ -43,6 +44,11 @@ int main(int argc, char* argv[])
             char* substr = strchr(argv[i], '='); // Extract substring of all characters after and including '='
             tolerance = atof(++substr); // Increment to get rid of '=' char, then attempt to convert to double
             if (tolerance) tol_auto = false; // If parsed value is non-zero and interpretable, then use as tolerance
+        }
+        if (strstr(argv[i], "--transE"))
+        {
+            char* substr = strchr(argv[i], '='); // Extract substring of all characters after and including '='
+            transE = atof(++substr); // Increment to get rid of '=' char, then attempt to convert to double. If it is not interpretable then E0 is set to 0.
         }
     }
 
@@ -83,12 +89,12 @@ int main(int argc, char* argv[])
                 double sum = 0.0;
                 for (int k = 0; k < M; k++)
                     if (i != k)
-                        sum += allSites[i].Rate(&allSites[k], F_z, kBT, reorg) * allSites[i].PrecondFactor(F_z, kBT, precondition);
+                        sum += allSites[i].Rate(&allSites[k], F_z, kBT, reorg) * allSites[i].PrecondFactor(F_z, kBT, transE, precondition);
                 el = -sum;
             }
             else
             {
-                el = allSites[f].Rate(&allSites[i], F_z, kBT, reorg) * allSites[f].PrecondFactor(F_z, kBT, precondition); // May need to switch i and f?
+                el = allSites[f].Rate(&allSites[i], F_z, kBT, reorg) * allSites[f].PrecondFactor(F_z, kBT, transE, precondition); // May need to switch i and f?
             }
             gsl_matrix_set(A, i, f, el);
             if (el) // Check el is non-zero otherwise lowestO will equal -inf
@@ -189,7 +195,7 @@ int main(int argc, char* argv[])
 
                 // Reverse preconditioning
                 for (int j = 0; j < Q->size; j++)
-                    gsl_vector_set(Q, j, gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT, precondition));
+                    gsl_vector_set(Q, j, gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT,transE, precondition));
 
                 // Renormalise so squared values add to 1
                 normalise(Q);

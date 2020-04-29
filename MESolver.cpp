@@ -202,33 +202,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    //######## Uncomment to be able to interactively select columns from V ##############
-    //std::cout << "\nInput column index of V to view occupation probabilities (non-int to exit)\n";
-    //std::cout << "\nMax is " << V->size2 - 1 << " : ";
-
-    //size_t col;
-    //while (std::cin >> col)
-    //{
-    //    if (col >= V->size2)
-    //    {
-    //        std::cout << "\nIndex too large.\n";
-    //    }
-    //    else
-    //    {
-    //        std::cout << "\nP =\n";
-    //        gsl_matrix_get_col(P, V, col);
-    //        for (int i = 0; i < P->size; i++) 
-    //            allSites[i].occProb = gsl_vector_get(P, i);
-    //        printOccProbs(allSites);
-
-    //    }
-
-    //    std::cout << "\n\nInput column index of V to view occupation probabilities (non-int to exit)\n"; 
-    //    std::cout << "\nMax is " << V->size2 - 1 << " : ";
-
-    //}
-    //######################################################################################
-
     // Free memory
     gsl_matrix_free(A);
     gsl_matrix_free(U);

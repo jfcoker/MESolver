@@ -97,57 +97,7 @@ int main(int argc, char* argv[])
 
     if (precondition) std::cout << "\nCreating preconditioned rate matrix A...\n";
     else std::cout << "\nCreating rate matrix A...\n";
-
-    gsl_matrix* A = gsl_matrix_alloc(M, M);
-    gsl_matrix_set_zero(A);
-    int highestO = -999;
-    int lowestO = 999;
-    int orderOfMag;
-    for (int i = 0; i < M; i++)
-        for (int f = 0; f < M; f++)
-        {
-            double el = 0;
-            if (i == f)
-            {
-                double sum = 0.0;
-                for (int k = 0; k < M; k++)
-                    if (i != k)
-                        sum += allSites[i].Rate(&allSites[k], F_z, kBT, reorg) * allSites[i].PrecondFactor(F_z, kBT, reorg, transE, form, precondition);
-                el = -sum;
-            }
-            else
-            {
-                el = allSites[f].Rate(&allSites[i], F_z, kBT, reorg) * allSites[f].PrecondFactor(F_z, kBT, reorg, transE, form, precondition); // May need to switch i and f?
-            }
-            gsl_matrix_set(A, i, f, el);
-            if (el) // Check el is non-zero otherwise lowestO will equal -inf
-            {
-                orderOfMag = (int)floor(log10(abs(el)));
-                if (orderOfMag > highestO) highestO = orderOfMag;
-                if (orderOfMag < lowestO) lowestO = orderOfMag;
-            }
-        }
-
-    if (verbose)
-    {
-        printMatrix(A);
-        std::cout << "\nValues:\nMax = " << gsl_matrix_max(A) << "\nMin = " << gsl_matrix_min(A) << "\nRange = " << gsl_matrix_max(A) - gsl_matrix_min(A) << "\n";
-        std::cout << "\nOrder of magnitude:\nHighest = " << highestO << "\nLowest = " << lowestO << "\nDiff = " << highestO - lowestO << "\n";
-    }
-
-
- 
-    if (rescale)
-    {
-        std::cout << "\nTo reduce precision errors, rescale A by 1e-" << highestO << "\n";
-        gsl_matrix_scale(A, pow(10, -highestO));
-
-        if (verbose)
-        {
-            std::cout << "Reduced A = \n";
-            printMatrix(A);
-        }
-    }
+    gsl_matrix* A = CreateRateMatrix(allSites, F_z, kBT, reorg, precondition, rescale);
 
     std::cout << "\nSolving ME using SVD...\n";
     gsl_matrix* U = gsl_matrix_alloc(M, M);
@@ -202,6 +152,7 @@ int main(int argc, char* argv[])
 
     std::cout << "\n\nDisregarding singular values greater than threshold = " << tolerance << "\n";
     std::cout << "Printing possible solutions\n";
+    gsl_matrix* cleanA = CreateRateMatrix(allSites, F_z, kBT, reorg, false, false); // Need the non-conditioned, non-scaled rate matrix for velocity calculations.
     int solnum = 0;
     for (int i = 0; i < S->size; i++)
     {
@@ -232,7 +183,11 @@ int main(int argc, char* argv[])
                 allSites[j].occProb = gsl_vector_get(Q, j);
             printOccProbs(allSites, 2);
 
-            double v_z = velocity_z(allSites, A);
+            double v_z = velocity_z(allSites, cleanA);
+            double mobility = v_z / F_z;
+            std::cout << "\nvelocity_z = " << v_z << "\n";
+            std::cout << "\nmobility = " << mobility << "\n";
+
             //if (verbose)
             //{
             //    std::cout << "\nCHECK: is P a solution?\nA x P =\n";
@@ -244,6 +199,7 @@ int main(int argc, char* argv[])
     }
 
     // Free memory
+    gsl_matrix_free(cleanA);
     gsl_matrix_free(A);
     gsl_matrix_free(U);
     gsl_matrix_free(V);
@@ -324,6 +280,63 @@ std::vector<site> CreateSites(char* XYZfile, char* EDGEfile)
     in.close();
 
     return sites;
+
+}
+
+gsl_matrix* CreateRateMatrix(std::vector<site>& sites, double fieldZ, double kBT, double reorg, bool precond, bool scale)
+{
+    size_t M = sites.size();
+    gsl_matrix* A = gsl_matrix_alloc(M, M);
+    gsl_matrix_set_zero(A);
+
+    int highestO = -999;
+    int lowestO = 999;
+    int orderOfMag;
+    for (int i = 0; i < M; i++)
+        for (int f = 0; f < M; f++)
+        {
+            double el = 0;
+            if (i == f)
+            {
+                double sum = 0.0;
+                for (int k = 0; k < M; k++)
+                    if (i != k)
+                        sum += sites[i].Rate(&sites[k], fieldZ, kBT, reorg) * sites[i].PrecondFactor(fieldZ, kBT, reorg, transE, form, precond);
+                el = -sum;
+            }
+            else
+            {
+                el = sites[f].Rate(&sites[i], fieldZ, kBT, reorg) * sites[f].PrecondFactor(fieldZ, kBT, reorg, transE, form, precond); // May need to switch i and f?
+            }
+            gsl_matrix_set(A, i, f, el);
+            if (el) // Check el is non-zero otherwise lowestO will equal -inf
+            {
+                orderOfMag = (int)floor(log10(abs(el)));
+                if (orderOfMag > highestO) highestO = orderOfMag;
+                if (orderOfMag < lowestO) lowestO = orderOfMag;
+            }
+        }
+
+    if (verbose)
+    {
+        printMatrix(A);
+        std::cout << "\nValues:\nMax = " << gsl_matrix_max(A) << "\nMin = " << gsl_matrix_min(A) << "\nRange = " << gsl_matrix_max(A) - gsl_matrix_min(A) << "\n";
+        std::cout << "\nOrder of magnitude:\nHighest = " << highestO << "\nLowest = " << lowestO << "\nDiff = " << highestO - lowestO << "\n";
+    }
+
+    if (scale)
+    {
+        std::cout << "\nTo reduce precision errors, rescale A by 1e-" << highestO << "\n";
+        gsl_matrix_scale(A, pow(10, -highestO));
+
+        if (verbose)
+        {
+            std::cout << "Reduced A = \n";
+            printMatrix(A);
+        }
+    }
+
+    return A;
 
 }
 

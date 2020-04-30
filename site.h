@@ -74,7 +74,9 @@ private:
 
 std::vector<site> CreateSites(char* XYZfile, char* EDGEfile);
 
-double velocity_z(std::vector<site>& sites, gsl_matrix* A, gsl_vector* P);
+gsl_matrix* CreateRateMatrix(std::vector<site>& sites, double fieldZ, double kBT, double reorg, bool precond, bool scale);
+
+double velocity_z(std::vector<site>& sites, gsl_matrix* A);
 
 
 

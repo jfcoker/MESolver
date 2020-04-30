@@ -112,12 +112,12 @@ int main(int argc, char* argv[])
                 double sum = 0.0;
                 for (int k = 0; k < M; k++)
                     if (i != k)
-                        sum += allSites[i].Rate(&allSites[k], F_z, kBT, reorg) * allSites[i].PrecondFactor(F_z, kBT, transE, form, precondition);
+                        sum += allSites[i].Rate(&allSites[k], F_z, kBT, reorg) * allSites[i].PrecondFactor(F_z, kBT, reorg, transE, form, precondition);
                 el = -sum;
             }
             else
             {
-                el = allSites[f].Rate(&allSites[i], F_z, kBT, reorg) * allSites[f].PrecondFactor(F_z, kBT, transE, form, precondition); // May need to switch i and f?
+                el = allSites[f].Rate(&allSites[i], F_z, kBT, reorg) * allSites[f].PrecondFactor(F_z, kBT, reorg, transE, form, precondition); // May need to switch i and f?
             }
             gsl_matrix_set(A, i, f, el);
             if (el) // Check el is non-zero otherwise lowestO will equal -inf
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
 
                 // Reverse preconditioning
                 for (int j = 0; j < Q->size; j++)
-                    gsl_vector_set(Q, j, gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT, transE, form, precondition));
+                    gsl_vector_set(Q, j, gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT,reorg, transE, form, precondition));
 
                 // Renormalise so squared values add to 1
                 normalise(Q);

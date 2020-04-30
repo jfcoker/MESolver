@@ -12,6 +12,7 @@ private:
 	struct neighbour {
 		site* _pSite = NULL; 
 		double _J = 0.0;
+	// private: // ToDo: Make sure only the function Rate() has access to the member below.
 		double _rate = -1.0; // -1 for not yet set, the rate will be updated the first time it is needed.
 	};
 
@@ -56,7 +57,7 @@ public:
 
 	// Calculate the preconditioning factor.
 	// This is used to transform the rate matrix into a form more suitable for solving numerically.
-	double PrecondFactor(double fieldZ, double kBT, double E0, PrecondForm form, bool apply);
+	double PrecondFactor(double fieldZ, double kBT, double reorg, double E0, PrecondForm form, bool apply);
 
 	// Destructor
 	~site();

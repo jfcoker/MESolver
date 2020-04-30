@@ -65,7 +65,7 @@ double site::Rate(site* pSite, double fieldZ, double kBT, double reorg)
         return pN->_rate;
 }
 
-double site::PrecondFactor(double fieldZ, double kBT, double E0, site::PrecondForm form, bool apply)
+double site::PrecondFactor(double fieldZ, double kBT, double reorg, double E0, site::PrecondForm form, bool apply)
 {
     if (apply) 
     {
@@ -84,7 +84,7 @@ double site::PrecondFactor(double fieldZ, double kBT, double E0, site::PrecondFo
             double sum = 0;
             std::vector<neighbour*>::iterator it = neighbours.begin();
             for (int i = 0; it != neighbours.end(); i++, it++)
-                sum += (*it)->_rate;
+                sum += (*it)->_pSite->Rate(this,fieldZ,kBT,reorg);
 
             return sum;
         }

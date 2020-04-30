@@ -52,9 +52,13 @@ int main(int argc, char* argv[])
         }
     }
 
+    // Print options
     std::cout << "Taking input from " << sim << ", " << xyz << ", " << edge << " ...\n";
-    std::cout << "Verbosity "; if (verbose) std::cout << "high\n"; else std::cout << "low\n";
+    std::cout << "Preconditioning "; if (precondition) std::cout << "on\n"; else std::cout << "off\n";
+    std::cout << "Rescaling "; if (rescale) std::cout << "on\n"; else std::cout << "off\n";
     std::cout << "Singular value threshold = "; if (tol_auto) std::cout << "auto\n"; else std::cout << tolerance << "\n";
+    std::cout << "Verbosity "; if (verbose) std::cout << "high\n"; else std::cout << "low\n";
+
 
     std::cout << "\nReading simulation parameters...\n";
     const double F_z = ReadParameter(sim, label_F_z); // V/Ang

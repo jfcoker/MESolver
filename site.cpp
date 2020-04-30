@@ -86,7 +86,7 @@ double site::PrecondFactor(double fieldZ, double kBT, double reorg, double E0, s
             for (int i = 0; it != neighbours.end(); i++, it++)
                 sum += (*it)->_pSite->Rate(this,fieldZ,kBT,reorg);
 
-            return sum;
+            return 1.0 / sum;
         }
          default:
              throw std::logic_error("Form of preconditioning factor not implemented.");

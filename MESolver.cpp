@@ -81,8 +81,8 @@ int main(int argc, char* argv[])
 
     gsl_matrix* A = gsl_matrix_alloc(M, M);
     gsl_matrix_set_zero(A);
-    int highestO = -999.0;
-    int lowestO = 999.0;
+    int highestO = -999;
+    int lowestO = 999;
     int orderOfMag;
     for (int i = 0; i < M; i++)
         for (int f = 0; f < M; f++)
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
             gsl_matrix_set(A, i, f, el);
             if (el) // Check el is non-zero otherwise lowestO will equal -inf
             {
-                orderOfMag = floor(log10(abs(el)));
+                orderOfMag = (int)floor(log10(abs(el)));
                 if (orderOfMag > highestO) highestO = orderOfMag;
                 if (orderOfMag < lowestO) lowestO = orderOfMag;
             }

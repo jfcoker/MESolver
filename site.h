@@ -10,18 +10,21 @@ private:
 
 	// A structure that will be used to specify which other sites this site interacts with, and the strength of this interaction.
 	struct neighbour {
-		site* _pSite; 
-		double _J;
+		site* _pSite = NULL; 
+		double _J = 0.0;
+		double _rate = -1.0; // -1 for not yet set, the rate will be updated the first time it is needed.
 	};
 
+	// The list of neighbors this site interacts with.
 	std::vector<neighbour*> neighbours;
-
-
 
 public:
 
+	// The position of the site.
 	vec pos;
-	double occProb = 0;
+
+	// The occupation probability of this site. -1.0 for not set.
+	double occProb = -1.0;
 
 	// The site energy.
 	double energy;
@@ -42,12 +45,14 @@ public:
 
 	// Calculate the transfer rate between this site (as initial), and the site passed as pointer (as final).
 	// If the passed site is not in the list of interacting neighbours, the rate will be zero.
+	// Only performs the full calculation the first time this function is called (for this this specific rate).
 	double Rate(site* pSite, double fieldZ, double kBT, double reorg);
 
 	// Calculate the preconditioning factor.
 	// This is used to transform the rate matrix into a form more suitable for solving numerically.
 	double PrecondFactor(double fieldZ, double kBT, double E0, bool apply);
 
+	// Destructor
 	~site();
 
 	friend std::ostream& operator<<(std::ostream& os, const site& st);

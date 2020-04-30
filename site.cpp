@@ -54,12 +54,15 @@ double site::Rate(site* pSite, double fieldZ, double kBT, double reorg)
     if (!pN)
         // Sites aren't interacting, transfer rate will be zero.
         return 0.0;
-    else
+    else if (pN->_rate < 0.0) // If rate is -1, then this is the initial call and rate needs to be calculated. Using '<' to avoid equality comparison on floating point values.
     {
-        double J2 = std::pow(pN->_J,2); // |J_if|^2
+        double J2 = std::pow(pN->_J, 2); // |J_if|^2
         double deltaE = this->deltaE(pSite, fieldZ);
-        return ((2 * pi) / hbar) * J2 * std::pow(4 * pi * reorg * kBT, -0.5) * std::exp(-1 * std::pow(deltaE + reorg, 2) / (4 * reorg * kBT));
+        pN->_rate = ((2 * pi) / hbar) * J2 * std::pow(4 * pi * reorg * kBT, -0.5) * std::exp(-1 * std::pow(deltaE + reorg, 2) / (4 * reorg * kBT));
+        return pN->_rate;
     }
+    else // Rate has already been calculated. Just grab it.
+        return pN->_rate;
 }
 
 double site::PrecondFactor(double fieldZ, double kBT, double E0, bool apply)

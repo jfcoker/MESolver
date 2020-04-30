@@ -18,6 +18,7 @@ bool rescale = false;
 bool tol_auto = true;
 double tolerance = 0.0;
 double transE = 0.0;
+site::PrecondForm form = site::PrecondForm::boltzmann;
 
 int main(int argc, char* argv[])
 {
@@ -28,7 +29,7 @@ int main(int argc, char* argv[])
     }
     char sim[128], xyz[128], edge[128], occ[128];
     for (int i = 1; i < argc; i++) {
-        
+
         // Input files
         if (strstr(argv[i], ".sim"))  strcpy_s(sim, argv[i]);
         if (strstr(argv[i], ".xyz"))  strcpy_s(xyz, argv[i]);
@@ -37,24 +38,43 @@ int main(int argc, char* argv[])
 
         // Options
         if (strcmp(argv[i], "-v") == 0) verbose = true;
-        if (strcmp(argv[i], "--precondition") == 0) precondition = true;
+        if (strcmp(argv[i], "--precondition") == 0)
+        {
+            precondition = true;
+            char* substr = strchr(argv[i], '='); // Extract substring of all characters after and including '='
+            ++substr; // Increment to get rid of '=' char
+            if (strcmp(substr, "boltzmann")) form = site::PrecondForm::boltzmann;
+            else if (strcmp(substr, "boltzmannSquared")) form = site::PrecondForm::boltzmannSquared;
+            else if (strcmp(substr, "rateSum")) form = site::PrecondForm::rateSum;
+            else form = site::PrecondForm::boltzmann;
+        }
         if (strcmp(argv[i], "--rescale") == 0) rescale = true;
         if (strstr(argv[i], "--tol"))
         {
-            char* substr = strchr(argv[i], '='); // Extract substring of all characters after and including '='
-            tolerance = atof(++substr); // Increment to get rid of '=' char, then attempt to convert to double
+            char* substr = strchr(argv[i], '=');
+            tolerance = atof(++substr);
             if (tolerance) tol_auto = false; // If parsed value is non-zero and interpretable, then use as tolerance
         }
         if (strstr(argv[i], "--transE"))
         {
-            char* substr = strchr(argv[i], '='); // Extract substring of all characters after and including '='
-            transE = atof(++substr); // Increment to get rid of '=' char, then attempt to convert to double. If it is not interpretable then E0 is set to 0.
+            char* substr = strchr(argv[i], '=');
+            transE = atof(++substr); // If not interpretable then atof will return 0.
         }
     }
 
     // Print options
     std::cout << "Taking input from " << sim << ", " << xyz << ", " << edge << " ...\n";
-    std::cout << "Preconditioning "; if (precondition) std::cout << "on\n"; else std::cout << "off\n";
+    std::cout << "Preconditioning ";
+    if (precondition)
+    {
+        std::cout << "on, form = ";
+        switch (form)
+        {
+        case site::PrecondForm::boltzmann: std::cout << "boltzmann\n"; break;
+        case site::PrecondForm::boltzmannSquared: std::cout << "boltzmannSquared\n"; break;
+        case site::PrecondForm::rateSum: std::cout << "rateSum\n"; break;
+        }
+    } else std::cout << "off\n";
     std::cout << "Rescaling "; if (rescale) std::cout << "on\n"; else std::cout << "off\n";
     std::cout << "Singular value threshold = "; if (tol_auto) std::cout << "auto\n"; else std::cout << tolerance << "\n";
     std::cout << "Verbosity "; if (verbose) std::cout << "high\n"; else std::cout << "low\n";
@@ -93,12 +113,12 @@ int main(int argc, char* argv[])
                 double sum = 0.0;
                 for (int k = 0; k < M; k++)
                     if (i != k)
-                        sum += allSites[i].Rate(&allSites[k], F_z, kBT, reorg) * allSites[i].PrecondFactor(F_z, kBT, transE, precondition);
+                        sum += allSites[i].Rate(&allSites[k], F_z, kBT, reorg) * allSites[i].PrecondFactor(F_z, kBT, transE, form, precondition);
                 el = -sum;
             }
             else
             {
-                el = allSites[f].Rate(&allSites[i], F_z, kBT, reorg) * allSites[f].PrecondFactor(F_z, kBT, transE, precondition); // May need to switch i and f?
+                el = allSites[f].Rate(&allSites[i], F_z, kBT, reorg) * allSites[f].PrecondFactor(F_z, kBT, transE, form, precondition); // May need to switch i and f?
             }
             gsl_matrix_set(A, i, f, el);
             if (el) // Check el is non-zero otherwise lowestO will equal -inf
@@ -199,7 +219,7 @@ int main(int argc, char* argv[])
 
                 // Reverse preconditioning
                 for (int j = 0; j < Q->size; j++)
-                    gsl_vector_set(Q, j, gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT,transE, precondition));
+                    gsl_vector_set(Q, j, gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT, transE, form, precondition));
 
                 // Renormalise so squared values add to 1
                 normalise(Q);

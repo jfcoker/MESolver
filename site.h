@@ -48,9 +48,15 @@ public:
 	// Only performs the full calculation the first time this function is called (for this this specific rate).
 	double Rate(site* pSite, double fieldZ, double kBT, double reorg);
 
+	// Alternative forms of preconditioning factor
+	// (Rather than enum could treat site as an interface, 
+	//  with function PrecondFactor as a pure virtual function,
+	//  and each form as a different implementation)
+	enum class PrecondForm { boltzmann, boltzmannSquared, rateSum};
+
 	// Calculate the preconditioning factor.
 	// This is used to transform the rate matrix into a form more suitable for solving numerically.
-	double PrecondFactor(double fieldZ, double kBT, double E0, bool apply);
+	double PrecondFactor(double fieldZ, double kBT, double E0, PrecondForm form, bool apply);
 
 	// Destructor
 	~site();

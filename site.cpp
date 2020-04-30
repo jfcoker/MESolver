@@ -65,10 +65,35 @@ double site::Rate(site* pSite, double fieldZ, double kBT, double reorg)
         return pN->_rate;
 }
 
-double site::PrecondFactor(double fieldZ, double kBT, double E0, bool apply)
+double site::PrecondFactor(double fieldZ, double kBT, double E0, site::PrecondForm form, bool apply)
 {
-    if (apply)
-        return std::exp((E0 - (this->energy + this->pos.Z * fieldZ)) / kBT);
+    if (apply) 
+    {
+        // Could use interface / implementation instead of enum / switch
+        switch (form)
+        {
+        case PrecondForm::boltzmann: 
+            return std::exp((E0 - (this->energy + this->pos.Z * fieldZ)) / kBT);
+
+        case PrecondForm::boltzmannSquared: 
+            return std::pow(std::exp((E0 - (this->energy + this->pos.Z * fieldZ)) / kBT), 2.0);
+
+            //ALTERNATIVE PRCONDITIONING FACTOR FROM: Yu PRB 2001 (long)
+        case PrecondForm::rateSum:
+        {
+            double sum = 0;
+            std::vector<neighbour*>::iterator it = neighbours.begin();
+            for (int i = 0; it != neighbours.end(); i++, it++)
+                sum += (*it)->_rate;
+
+            return sum;
+        }
+         default:
+             throw std::logic_error("Form of preconditioning factor not implemented.");
+             return -1.0;
+
+        }
+    }
     else
         return 1.0;
 }

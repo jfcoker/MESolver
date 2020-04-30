@@ -232,6 +232,7 @@ int main(int argc, char* argv[])
                 allSites[j].occProb = gsl_vector_get(Q, j);
             printOccProbs(allSites, 2);
 
+            double v_z = velocity_z(allSites, A);
             //if (verbose)
             //{
             //    std::cout << "\nCHECK: is P a solution?\nA x P =\n";
@@ -324,4 +325,15 @@ std::vector<site> CreateSites(char* XYZfile, char* EDGEfile)
 
     return sites;
 
+}
+
+double velocity_z(std::vector<site>& sites, gsl_matrix* A)
+{
+    double sum = 0.0;
+    for (int i = 0; i < sites.size(); i++)
+        for (int j = 0; j < sites.size(); j++)
+            if (i != j)
+                sum += (sites[i].pos.Z - sites[j].pos.Z) * gsl_matrix_get(A, j, i) * sites[i].occProb;
+
+    return sum;
 }

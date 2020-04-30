@@ -38,14 +38,13 @@ int main(int argc, char* argv[])
 
         // Options
         if (strcmp(argv[i], "-v") == 0) verbose = true;
-        if (strcmp(argv[i], "--precondition") == 0)
+        if (strstr(argv[i], "--precondition"))
         {
             precondition = true;
             char* substr = strchr(argv[i], '='); // Extract substring of all characters after and including '='
             ++substr; // Increment to get rid of '=' char
-            if (strcmp(substr, "boltzmann")) form = site::PrecondForm::boltzmann;
-            else if (strcmp(substr, "boltzmannSquared")) form = site::PrecondForm::boltzmannSquared;
-            else if (strcmp(substr, "rateSum")) form = site::PrecondForm::rateSum;
+            if (strcmp(substr, "rateSum") == 0) form = site::PrecondForm::rateSum;
+            else if (strcmp(substr, "boltzmannSquared") == 0) form = site::PrecondForm::boltzmannSquared;
             else form = site::PrecondForm::boltzmann;
         }
         if (strcmp(argv[i], "--rescale") == 0) rescale = true;

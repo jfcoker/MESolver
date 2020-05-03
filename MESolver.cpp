@@ -187,10 +187,9 @@ int main(int argc, char* argv[])
             printOccProbs(allSites, 2);
 
             double v_z = velocity_z(allSites, cleanA);
-            double mobility = v_z / F_z;
             std::cout << "\nvelocity_z = " << v_z << "\n";
-            std::cout << "\nmobility = " << mobility << "\n";
-
+            if (F_z != 0.0) std::cout << "\nmobility = " << v_z / F_z << "\n";
+            
             //if (verbose)
             //{
             //    std::cout << "\nCHECK: is P a solution?\nA x P =\n";

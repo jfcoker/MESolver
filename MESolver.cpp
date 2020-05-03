@@ -41,20 +41,23 @@ int main(int argc, char* argv[])
         if (strstr(argv[i], "--precondition"))
         {
             precondition = true;
-            char* substr = strchr(argv[i], '='); // Extract substring of all characters after and including '='
-            ++substr; // Increment to get rid of '=' char
-            if (strcmp(substr, "rateSum") == 0) form = site::PrecondForm::rateSum;
-            else if (strcmp(substr, "boltzmannSquared") == 0) form = site::PrecondForm::boltzmannSquared;
-            else form = site::PrecondForm::boltzmann;
+            if (strstr(argv[i], "="))
+            {
+                char* substr = strchr(argv[i], '='); // Extract substring of all characters after and including '='
+                ++substr; // Increment to get rid of '=' char
+                if (strcmp(substr, "rateSum") == 0) form = site::PrecondForm::rateSum;
+                else if (strcmp(substr, "boltzmannSquared") == 0) form = site::PrecondForm::boltzmannSquared;
+                else form = site::PrecondForm::boltzmann;
+            }
         }
         if (strcmp(argv[i], "--rescale") == 0) rescale = true;
-        if (strstr(argv[i], "--tol"))
+        if (strstr(argv[i], "--tol="))
         {
             char* substr = strchr(argv[i], '=');
             tolerance = atof(++substr);
             if (tolerance) tol_auto = false; // If parsed value is non-zero and interpretable, then use as tolerance
         }
-        if (strstr(argv[i], "--transE"))
+        if (strstr(argv[i], "--transE="))
         {
             char* substr = strchr(argv[i], '=');
             transE = atof(++substr); // If not interpretable then atof will return 0.

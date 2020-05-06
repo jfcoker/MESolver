@@ -15,7 +15,6 @@ const char* label_reorg = "reorg"; // Reorganisation energy
 bool verbose = false;
 bool precondition = false;
 bool rescale = false;
-bool tol_auto = true;
 double tolerance = 0.0;
 double transE = 0.0;
 site::PrecondForm form = site::PrecondForm::boltzmann;
@@ -54,8 +53,7 @@ int main(int argc, char* argv[])
         if (strstr(argv[i], "--tol="))
         {
             char* substr = strchr(argv[i], '=');
-            tolerance = atof(++substr);
-            if (tolerance) tol_auto = false; // If parsed value is non-zero and interpretable, then use as tolerance
+            tolerance = atof(++substr); // If not interpretable then atof will return 0.
         }
         if (strstr(argv[i], "--transE="))
         {
@@ -78,7 +76,7 @@ int main(int argc, char* argv[])
         }
     } else std::cout << "off\n";
     std::cout << "Rescaling "; if (rescale) std::cout << "on\n"; else std::cout << "off\n";
-    std::cout << "Singular value threshold = "; if (tol_auto) std::cout << "auto\n"; else std::cout << tolerance << "\n";
+    std::cout << "Singular value threshold = "; if (tolerance == 0.0) std::cout << "auto\n"; else std::cout << tolerance << "\n";
     std::cout << "Verbosity "; if (verbose) std::cout << "high\n"; else std::cout << "low\n";
 
 
@@ -148,7 +146,7 @@ int main(int argc, char* argv[])
         printMatrix(UxSigmaxVT);
     }
 
-    if (tol_auto)
+    if (tolerance == 0.0) // If tolerance has not been set manually, calculate it using machine epsilon.
         tolerance = std::numeric_limits<double>::epsilon() * 
                     std::max(std::max(gsl_matrix_max(U),std::abs(gsl_matrix_min(U))),
                              std::max(gsl_matrix_max(V), std::abs(gsl_matrix_min(V))));

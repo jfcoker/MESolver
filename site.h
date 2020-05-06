@@ -37,12 +37,13 @@ public:
 	neighbour* hasNeighbour(site* pSite);
 
 	// Calculate the energetic driving force for the transfer of a charge from this site (as initial) to the site passed as pointer (as final).
-	double deltaE(site* pSite, double fieldZ);
+	// If periodic is true then use the minimum image convention to find the shortest path to from this site to the target site.
+	double deltaE(site* pSite, double fieldZ, bool periodic, double zsize, double zrsize);
 
 	// Calculate the transfer rate between this site (as initial), and the site passed as pointer (as final).
 	// If the passed site is not in the list of interacting neighbours, the rate will be zero.
 	// Only performs the full calculation the first time this function is called (for this this specific rate).
-	double Rate(site* pSite, double fieldZ, double kBT, double reorg);
+	double Rate(site* pSite, double fieldZ, double kBT, double reorg, bool periodic, double zsize, double zrsize);
 
 	// Alternative forms of preconditioning factor
 	// (Rather than enum could treat site as an interface, 
@@ -52,7 +53,7 @@ public:
 
 	// Calculate the preconditioning factor.
 	// This is used to transform the rate matrix into a form more suitable for solving numerically.
-	double PrecondFactor(double fieldZ, double kBT, double reorg, double E0, PrecondForm form, bool apply);
+	double PrecondFactor(double fieldZ, double kBT, double reorg, bool periodic, double zsize, double zrsize, double E0, PrecondForm form, bool apply);
 
 	// Destructor
 	~site();
@@ -63,7 +64,7 @@ private:
 
 	struct neighbour 
 	{
-		friend double site::Rate(site* pSite, double fieldZ, double kBT, double reorg);
+		friend double site::Rate(site* pSite, double fieldZ, double kBT, double reorg, bool periodic, double zsize, double zrsize);
 		site* _pSite = NULL;
 		double _J = 0.0;
 	private: // Make sure only the function Rate() has access to the member below.

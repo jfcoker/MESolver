@@ -42,12 +42,12 @@ site::neighbour* site::hasNeighbour(site* pSite)
     return NULL;
 }
 
-double site::deltaE(site* pSite, double fieldZ)
+double site::deltaE(site* pSite, double fieldZ, bool periodic, double zsize, double zrsize)
 {
     return (pSite->energy - this->energy) + (pSite->pos.Z - this->pos.Z) * fieldZ; // deltaE = (ep_f - ep_i) + [M_f.Z - M_i.Z] * F_z
 }
 
-double site::Rate(site* pSite, double fieldZ, double kBT, double reorg)
+double site::Rate(site* pSite, double fieldZ, double kBT, double reorg, bool periodic, double zsize, double zrsize)
 {
     neighbour* pN = this->hasNeighbour(pSite);
 
@@ -57,7 +57,7 @@ double site::Rate(site* pSite, double fieldZ, double kBT, double reorg)
     else if (pN->_rate < 0.0) // If rate is -1, then this is the initial call and rate needs to be calculated. Using '<' to avoid equality comparison on floating point values.
     {
         double J2 = std::pow(pN->_J, 2); // |J_if|^2
-        double deltaE = this->deltaE(pSite, fieldZ);
+        double deltaE = this->deltaE(pSite, fieldZ, periodic, zsize, zrsize);
         pN->_rate = ((2 * pi) / hbar) * J2 * std::pow(4 * pi * reorg * kBT, -0.5) * std::exp(-1 * std::pow(deltaE + reorg, 2) / (4 * reorg * kBT));
         return pN->_rate;
     }
@@ -65,7 +65,7 @@ double site::Rate(site* pSite, double fieldZ, double kBT, double reorg)
         return pN->_rate;
 }
 
-double site::PrecondFactor(double fieldZ, double kBT, double reorg, double E0, site::PrecondForm form, bool apply)
+double site::PrecondFactor(double fieldZ, double kBT, double reorg, bool periodic, double zsize, double zrsize, double E0, site::PrecondForm form, bool apply)
 {
     if (apply) 
     {
@@ -84,7 +84,7 @@ double site::PrecondFactor(double fieldZ, double kBT, double reorg, double E0, s
             double sum = 0;
             std::vector<neighbour*>::iterator it = neighbours.begin();
             for (int i = 0; it != neighbours.end(); i++, it++)
-                sum += (*it)->_pSite->Rate(this,fieldZ,kBT,reorg);
+                sum += (*it)->_pSite->Rate(this,fieldZ,kBT,reorg,periodic,zsize,zrsize);
 
             return 1.0 / sum;
         }

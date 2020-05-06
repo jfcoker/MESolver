@@ -10,10 +10,14 @@
 const char* label_F_z = "fieldZ"; // Electric field strength in Z direction.
 const char* label_T = "temp"; // Temperature
 const char* label_reorg = "reorg"; // Reorganisation energy
+const char* label_periodic = "periodic"; // Information for periodic boundary conditions 
 
 // Options
 bool verbose = false;
+bool periodic = false;
 bool precondition = false;
+double zsize = -1.0;
+double zrsize = -1.0;
 bool rescale = false;
 double tolerance = 0.0;
 double transE = 0.0;
@@ -100,12 +104,20 @@ int main(int argc, char* argv[])
     std::cout << "\nReading simulation parameters...\n";
     const double F_z = ReadParameter(sim, label_F_z); // V/Ang
     const double temp = ReadParameter(sim, label_T); // K
-    const double reorg = ReadParameter(sim, label_reorg); // eV
     const double kBT = kB * temp; // eV
+    const double reorg = ReadParameter(sim, label_reorg); // eV
+    const double zsize = ReadParameterDefaultValue(sim, label_periodic, -1.0); // Ang
+    if (zsize != -1.0)
+    {
+        periodic = true;
+        zrsize = 1.0 / zsize;
+    }
+
     std::cout << "fieldZ (V/Ang) = " << F_z
         << "\ntemp (K) = " << temp
-        << "\nreorg (eV) = " << reorg
-        << "\n";
+        << "\nreorg (eV) = " << reorg;
+    if (periodic) std::cout << "\nPeriodic in z, zsize (Ang) = " << zsize;
+    std::cout << "\n";
 
     std::cout << "\nCreating sites...\n";
     std::vector<site> allSites = CreateSites(xyz, edge);
@@ -187,7 +199,7 @@ int main(int argc, char* argv[])
 
                 // Reverse preconditioning
                 for (int j = 0; j < Q->size; j++)
-                    gsl_vector_set(Q, j, gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT,reorg, transE, form, precondition));
+                    gsl_vector_set(Q, j, gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT,reorg, transE, periodic, zsize, zrsize, form, precondition));
 
                 // Renormalise so squared values add to 1
                 normalise(Q);
@@ -339,12 +351,12 @@ gsl_matrix* CreateRateMatrix(std::vector<site>& sites, double fieldZ, double kBT
                 double sum = 0.0;
                 for (int k = 0; k < M; k++)
                     if (i != k)
-                        sum += sites[i].Rate(&sites[k], fieldZ, kBT, reorg) * sites[i].PrecondFactor(fieldZ, kBT, reorg, transE, form, precond);
+                        sum += sites[i].Rate(&sites[k], fieldZ, kBT, reorg, periodic, zsize, zrsize) * sites[i].PrecondFactor(fieldZ, kBT, reorg, periodic, zsize, zrsize, transE, form, precond);
                 el = -sum;
             }
             else
             {
-                el = sites[f].Rate(&sites[i], fieldZ, kBT, reorg) * sites[f].PrecondFactor(fieldZ, kBT, reorg, transE, form, precond); // May need to switch i and f?
+                el = sites[f].Rate(&sites[i], fieldZ, kBT, reorg, periodic, zsize, zrsize) * sites[f].PrecondFactor(fieldZ, kBT, reorg, periodic, zsize, zrsize, transE, form, precond); // May need to switch i and f?
             }
             gsl_matrix_set(A, i, f, el);
             if (el) // Check el is non-zero otherwise lowestO will equal -inf

@@ -17,12 +17,11 @@ const char* label_periodic = "periodicZ"; // Information for periodic boundary c
 // Options
 bool verbose = false;
 bool periodic = false;
-bool precondition = false;
 bool rescale = false;
 double tolerance = 0.0;
 double transE = 0.0;
 std::vector<double> propagate;
-transporter::PrecondForm form = transporter::PrecondForm::boltzmann;
+transporter::PrecondForm form = transporter::PrecondForm::off;
 
 int main(int argc, char* argv[])
 {
@@ -44,14 +43,13 @@ int main(int argc, char* argv[])
         if (strcmp(argv[i], "-v") == 0) verbose = true;
         if (strstr(argv[i], "--precondition"))
         {
-            precondition = true;
+            form = transporter::PrecondForm::boltzmann;
             if (strstr(argv[i], "="))
             {
                 char* substr = strchr(argv[i], '='); // Extract substring of all characters after and including '='
                 ++substr; // Increment to get rid of '=' char
                 if (strcmp(substr, "rateSum") == 0) form = transporter::PrecondForm::rateSum;
                 else if (strcmp(substr, "boltzmannSquared") == 0) form = transporter::PrecondForm::boltzmannSquared;
-                else form = transporter::PrecondForm::boltzmann;
             }
         }
         if (strcmp(argv[i], "--rescale") == 0) rescale = true;
@@ -85,16 +83,13 @@ int main(int argc, char* argv[])
     // Print options
     std::cout << "Taking input from " << sim << ", " << xyz << ", " << edge << " ...\n";
     std::cout << "Preconditioning ";
-    if (precondition)
+    switch (form)
     {
-        std::cout << "on, form = ";
-        switch (form)
-        {
-        case transporter::PrecondForm::boltzmann: std::cout << "boltzmann\n"; break;
-        case transporter::PrecondForm::boltzmannSquared: std::cout << "boltzmannSquared\n"; break;
-        case transporter::PrecondForm::rateSum: std::cout << "rateSum\n"; break;
-        }
-    } else std::cout << "off\n";
+        case transporter::PrecondForm::off: std::cout << "off\n"; break;
+        case transporter::PrecondForm::boltzmann: std::cout << "on, form = boltzmann\n"; break;
+        case transporter::PrecondForm::boltzmannSquared: std::cout << "on, form = boltzmannSquared\n"; break;
+        case transporter::PrecondForm::rateSum: std::cout << "on, form = rateSum\n"; break;
+    }
     std::cout << "Rescaling "; if (rescale) std::cout << "on\n"; else std::cout << "off\n";
     std::cout << "Singular value threshold = "; if (tolerance == 0.0) std::cout << "auto\n"; else std::cout << tolerance << "\n";
     if (!propagate.empty()) std::cout << "Testing time propagation of "; for (int i = 0; i < propagate.size(); i++) { std::cout << propagate[i] << "s "; }; std::cout << "\n";
@@ -124,7 +119,7 @@ int main(int argc, char* argv[])
     // Create transporter object
     transporter transport(kBT, F_z, reorg, transE, periodic, zsize);
 
-    if (precondition) std::cout << "\nCreating preconditioned rate matrix A...\n";
+    if (form != transporter::PrecondForm::off) std::cout << "\nCreating preconditioned rate matrix A...\n";
     else std::cout << "\nCreating rate matrix A...\n";
     gsl_matrix* A = transport.CreateRateMatrix(allSites, form, rescale, verbose);
 
@@ -192,7 +187,7 @@ int main(int argc, char* argv[])
             std::cout << "\n\nPossible solution " << solnum << " : singular value = " << sval << "\n";
 
             gsl_matrix_get_col(Q, V, i);
-            if (precondition) {
+            if (form != transporter::PrecondForm::off) {
                 std::cout << "\nConditioned densities\n";
                 printVector(Q);
 

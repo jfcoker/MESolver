@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     } else std::cout << "off\n";
     std::cout << "Rescaling "; if (rescale) std::cout << "on\n"; else std::cout << "off\n";
     std::cout << "Singular value threshold = "; if (tolerance == 0.0) std::cout << "auto\n"; else std::cout << tolerance << "\n";
-    std::cout << "Testing time propagation of "; for (int i = 0; i < propagate.size(); i++) { std::cout << propagate[i] << "s "; }; std::cout << "\n";
+    if (!propagate.empty()) std::cout << "Testing time propagation of "; for (int i = 0; i < propagate.size(); i++) { std::cout << propagate[i] << "s "; }; std::cout << "\n";
     std::cout << "Verbosity "; if (verbose) std::cout << "high\n"; else std::cout << "low\n";
 
 

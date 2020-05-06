@@ -11,7 +11,7 @@ const char* label_F_z = "fieldZ"; // Electric field strength in Z direction.
 const char* label_T = "temp"; // Temperature
 const char* label_reorg = "reorg"; // Reorganisation energy
 
-// Output formatting options
+// Options
 bool verbose = false;
 bool precondition = false;
 bool rescale = false;

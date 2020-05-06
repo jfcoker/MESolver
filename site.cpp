@@ -15,7 +15,7 @@ void site::addNeighbour(site* pSite, double J)
     // Unless already present, add passed site as neighbour to 'this'
     if (!this->hasNeighbour(pSite))
     {
-        neighbour* n = new site::neighbour;
+        neighbour* n = new neighbour;
         n->_pSite = pSite;
         n->_J = J;
         neighbours.push_back(n);
@@ -24,7 +24,7 @@ void site::addNeighbour(site* pSite, double J)
     // Unless already present, add 'this' as neighbour to passed site
     if (!pSite->hasNeighbour(this))
     {
-        neighbour* th = new site::neighbour;
+        neighbour* th = new neighbour;
         th->_pSite = this;
         th->_J = J;
         pSite->neighbours.push_back(th);
@@ -32,7 +32,7 @@ void site::addNeighbour(site* pSite, double J)
 
 }
 
-site::neighbour* site::hasNeighbour(site* pSite)
+neighbour* site::hasNeighbour(site* pSite)
 {
     std::vector<neighbour*>::iterator it = neighbours.begin();
     for (int i = 0; it != neighbours.end(); i++, it++)
@@ -42,66 +42,6 @@ site::neighbour* site::hasNeighbour(site* pSite)
     return NULL;
 }
 
-double site::deltaE(site* pSite, double fieldZ, bool periodic, double zsize, double zrsize)
-{
-    double deltaZ = (pSite->pos.Z - this->pos.Z);
-
-    // If periodic boundaries in z, then apply the minimum image convention.
-    if (periodic) deltaZ -= zsize * floor(deltaZ * zrsize + 0.5);
-
-    return (pSite->energy - this->energy) + deltaZ * fieldZ;
-}
-
-double site::Rate(site* pSite, double fieldZ, double kBT, double reorg, bool periodic, double zsize, double zrsize)
-{
-    neighbour* pN = this->hasNeighbour(pSite);
-
-    if (!pN)
-        // Sites aren't interacting, transfer rate will be zero.
-        return 0.0;
-    else if (pN->_rate < 0.0) // If rate is -1, then this is the initial call and rate needs to be calculated. Using '<' to avoid equality comparison on floating point values.
-    {
-        double J2 = std::pow(pN->_J, 2); // |J_if|^2
-        double deltaE = this->deltaE(pSite, fieldZ, periodic, zsize, zrsize);
-        pN->_rate = ((2 * pi) / hbar) * J2 * std::pow(4 * pi * reorg * kBT, -0.5) * std::exp(-1 * std::pow(deltaE + reorg, 2) / (4 * reorg * kBT));
-        return pN->_rate;
-    }
-    else // Rate has already been calculated. Just grab it.
-        return pN->_rate;
-}
-
-double site::PrecondFactor(double fieldZ, double kBT, double reorg, bool periodic, double zsize, double zrsize, double E0, site::PrecondForm form, bool apply)
-{
-    if (apply) 
-    {
-        // Could use interface / implementation instead of enum / switch
-        switch (form)
-        {
-        case PrecondForm::boltzmann: 
-            return std::exp((E0 - (this->energy + this->pos.Z * fieldZ)) / kBT);
-
-        case PrecondForm::boltzmannSquared: 
-            return std::pow(std::exp((E0 - (this->energy + this->pos.Z * fieldZ)) / kBT), 2.0);
-
-            //ALTERNATIVE PRCONDITIONING FACTOR FROM: Yu PRB 2001 (long)
-        case PrecondForm::rateSum:
-        {
-            double sum = 0;
-            std::vector<neighbour*>::iterator it = neighbours.begin();
-            for (int i = 0; it != neighbours.end(); i++, it++)
-                sum += (*it)->_pSite->Rate(this,fieldZ,kBT,reorg,periodic,zsize,zrsize);
-
-            return 1.0 / sum;
-        }
-         default:
-             throw std::logic_error("Form of preconditioning factor not implemented.");
-             return -1.0;
-
-        }
-    }
-    else
-        return 1.0;
-}
 
 site::~site()
 {

@@ -5,6 +5,8 @@
 #include "utility.h"
 #include "IO.h"
 #include "site.h"
+#include "transporter.h"
+
 
 // Simulation parameter labels
 const char* label_F_z = "fieldZ"; // Electric field strength in Z direction.
@@ -16,13 +18,11 @@ const char* label_periodic = "periodicZ"; // Information for periodic boundary c
 bool verbose = false;
 bool periodic = false;
 bool precondition = false;
-double zsize = -1.0;
-double zrsize = -1.0;
 bool rescale = false;
 double tolerance = 0.0;
 double transE = 0.0;
 std::vector<double> propagate;
-site::PrecondForm form = site::PrecondForm::boltzmann;
+transporter::PrecondForm form = transporter::PrecondForm::boltzmann;
 
 int main(int argc, char* argv[])
 {
@@ -49,9 +49,9 @@ int main(int argc, char* argv[])
             {
                 char* substr = strchr(argv[i], '='); // Extract substring of all characters after and including '='
                 ++substr; // Increment to get rid of '=' char
-                if (strcmp(substr, "rateSum") == 0) form = site::PrecondForm::rateSum;
-                else if (strcmp(substr, "boltzmannSquared") == 0) form = site::PrecondForm::boltzmannSquared;
-                else form = site::PrecondForm::boltzmann;
+                if (strcmp(substr, "rateSum") == 0) form = transporter::PrecondForm::rateSum;
+                else if (strcmp(substr, "boltzmannSquared") == 0) form = transporter::PrecondForm::boltzmannSquared;
+                else form = transporter::PrecondForm::boltzmann;
             }
         }
         if (strcmp(argv[i], "--rescale") == 0) rescale = true;
@@ -90,9 +90,9 @@ int main(int argc, char* argv[])
         std::cout << "on, form = ";
         switch (form)
         {
-        case site::PrecondForm::boltzmann: std::cout << "boltzmann\n"; break;
-        case site::PrecondForm::boltzmannSquared: std::cout << "boltzmannSquared\n"; break;
-        case site::PrecondForm::rateSum: std::cout << "rateSum\n"; break;
+        case transporter::PrecondForm::boltzmann: std::cout << "boltzmann\n"; break;
+        case transporter::PrecondForm::boltzmannSquared: std::cout << "boltzmannSquared\n"; break;
+        case transporter::PrecondForm::rateSum: std::cout << "rateSum\n"; break;
         }
     } else std::cout << "off\n";
     std::cout << "Rescaling "; if (rescale) std::cout << "on\n"; else std::cout << "off\n";
@@ -107,11 +107,7 @@ int main(int argc, char* argv[])
     const double kBT = kB * temp; // eV
     const double reorg = ReadParameter(sim, label_reorg); // eV
     const double zsize = ReadParameterDefaultValue(sim, label_periodic, -1.0); // Ang
-    if (zsize != -1.0)
-    {
-        periodic = true;
-        zrsize = 1.0 / zsize;
-    }
+    if (zsize != -1.0) periodic = true;
 
     std::cout << "fieldZ (V/Ang) = " << F_z
         << "\ntemp (K) = " << temp
@@ -125,9 +121,12 @@ int main(int argc, char* argv[])
     for (int i = 0; i < M; i++)
         std::cout << allSites[i] << std::endl;
 
+    // Create transporter object
+    transporter transport(kBT, F_z, reorg, transE, periodic, zsize);
+
     if (precondition) std::cout << "\nCreating preconditioned rate matrix A...\n";
     else std::cout << "\nCreating rate matrix A...\n";
-    gsl_matrix* A = CreateRateMatrix(allSites, F_z, kBT, reorg, precondition, rescale);
+    gsl_matrix* A = transport.CreateRateMatrix(allSites, form, rescale, verbose);
 
     std::cout << "\nSolving ME using SVD...\n";
     gsl_matrix* U = gsl_matrix_alloc(M, M);
@@ -182,7 +181,7 @@ int main(int argc, char* argv[])
 
     std::cout << "\n\nDisregarding singular values greater than threshold = " << tolerance << "\n";
     std::cout << "Printing possible solutions\n";
-    gsl_matrix* cleanA = CreateRateMatrix(allSites, F_z, kBT, reorg, false, false); // Need the non-conditioned, non-scaled rate matrix for time propogation and velocity calculations.
+    gsl_matrix* cleanA = transport.CreateRateMatrix(allSites, transporter::PrecondForm::off, false, false); // Need the non-conditioned, non-scaled rate matrix for time propogation and velocity calculations.
     int solnum = 0;
     for (int i = 0; i < S->size; i++)
     {
@@ -198,8 +197,8 @@ int main(int argc, char* argv[])
                 printVector(Q);
 
                 // Reverse preconditioning
-                for (int j = 0; j < Q->size; j++)
-                    gsl_vector_set(Q, j, gsl_vector_get(Q, j) * allSites[j].PrecondFactor(F_z, kBT,reorg, transE, periodic, zsize, zrsize, form, precondition));
+                for (int j = 0; j < Q->size; j++)      
+                    gsl_vector_set(Q, j, gsl_vector_get(Q, j) * transport.PrecondFactor(&allSites[j], form));
 
                 // Renormalise so squared values add to 1
                 normalise(Q);
@@ -234,7 +233,7 @@ int main(int argc, char* argv[])
                 gsl_vector_free(Qt);
             }
 
-            double v_z = velocity_z(allSites, cleanA);
+            double v_z = transport.velocity_z(allSites, cleanA);
             std::cout << "\nvelocity_z = " << v_z << "\n";
             if (F_z != 0.0) std::cout << "\nmobility = " << v_z / F_z << "\n";
             
@@ -331,72 +330,4 @@ std::vector<site> CreateSites(char* XYZfile, char* EDGEfile)
 
     return sites;
 
-}
-
-gsl_matrix* CreateRateMatrix(std::vector<site>& sites, double fieldZ, double kBT, double reorg, bool precond, bool scale)
-{
-    size_t M = sites.size();
-    gsl_matrix* A = gsl_matrix_alloc(M, M);
-    gsl_matrix_set_zero(A);
-
-    int highestO = -999;
-    int lowestO = 999;
-    int orderOfMag;
-    for (int i = 0; i < M; i++)
-        for (int f = 0; f < M; f++)
-        {
-            double el = 0;
-            if (i == f)
-            {
-                double sum = 0.0;
-                for (int k = 0; k < M; k++)
-                    if (i != k)
-                        sum += sites[i].Rate(&sites[k], fieldZ, kBT, reorg, periodic, zsize, zrsize) * sites[i].PrecondFactor(fieldZ, kBT, reorg, periodic, zsize, zrsize, transE, form, precond);
-                el = -sum;
-            }
-            else
-            {
-                el = sites[f].Rate(&sites[i], fieldZ, kBT, reorg, periodic, zsize, zrsize) * sites[f].PrecondFactor(fieldZ, kBT, reorg, periodic, zsize, zrsize, transE, form, precond); // May need to switch i and f?
-            }
-            gsl_matrix_set(A, i, f, el);
-            if (el) // Check el is non-zero otherwise lowestO will equal -inf
-            {
-                orderOfMag = (int)floor(log10(abs(el)));
-                if (orderOfMag > highestO) highestO = orderOfMag;
-                if (orderOfMag < lowestO) lowestO = orderOfMag;
-            }
-        }
-
-    if (verbose)
-    {
-        printMatrix(A);
-        std::cout << "\nValues:\nMax = " << gsl_matrix_max(A) << "\nMin = " << gsl_matrix_min(A) << "\nRange = " << gsl_matrix_max(A) - gsl_matrix_min(A) << "\n";
-        std::cout << "\nOrder of magnitude:\nHighest = " << highestO << "\nLowest = " << lowestO << "\nDiff = " << highestO - lowestO << "\n";
-    }
-
-    if (scale)
-    {
-        std::cout << "\nTo reduce precision errors, rescale A by 1e-" << highestO << "\n";
-        gsl_matrix_scale(A, pow(10, -highestO));
-
-        if (verbose)
-        {
-            std::cout << "Reduced A = \n";
-            printMatrix(A);
-        }
-    }
-
-    return A;
-
-}
-
-double velocity_z(std::vector<site>& sites, gsl_matrix* A)
-{
-    double sum = 0.0;
-    for (int i = 0; i < sites.size(); i++)
-        for (int j = 0; j < sites.size(); j++)
-            if (i != j)
-                sum += (sites[i].pos.Z - sites[j].pos.Z) * gsl_matrix_get(A, j, i) * sites[i].occProb;
-
-    return sum;
 }

@@ -44,7 +44,12 @@ site::neighbour* site::hasNeighbour(site* pSite)
 
 double site::deltaE(site* pSite, double fieldZ, bool periodic, double zsize, double zrsize)
 {
-    return (pSite->energy - this->energy) + (pSite->pos.Z - this->pos.Z) * fieldZ; // deltaE = (ep_f - ep_i) + [M_f.Z - M_i.Z] * F_z
+    double deltaZ = (pSite->pos.Z - this->pos.Z);
+
+    // If periodic boundaries in z, then apply the minimum image convention.
+    if (periodic) deltaZ -= zsize * floor(deltaZ * zrsize + 0.5);
+
+    return (pSite->energy - this->energy) + deltaZ * fieldZ;
 }
 
 double site::Rate(site* pSite, double fieldZ, double kBT, double reorg, bool periodic, double zsize, double zrsize)

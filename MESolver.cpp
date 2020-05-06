@@ -10,7 +10,7 @@
 const char* label_F_z = "fieldZ"; // Electric field strength in Z direction.
 const char* label_T = "temp"; // Temperature
 const char* label_reorg = "reorg"; // Reorganisation energy
-const char* label_periodic = "periodic"; // Information for periodic boundary conditions 
+const char* label_periodic = "periodicZ"; // Information for periodic boundary conditions 
 
 // Options
 bool verbose = false;

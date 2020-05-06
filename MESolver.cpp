@@ -17,6 +17,7 @@ bool precondition = false;
 bool rescale = false;
 double tolerance = 0.0;
 double transE = 0.0;
+std::vector<double> propagate;
 site::PrecondForm form = site::PrecondForm::boltzmann;
 
 int main(int argc, char* argv[])
@@ -60,6 +61,21 @@ int main(int argc, char* argv[])
             char* substr = strchr(argv[i], '=');
             transE = atof(++substr); // If not interpretable then atof will return 0.
         }
+        if (strstr(argv[i], "--propagate="))
+        {
+            char* substr = strchr(argv[i], '=');
+            ++substr;
+            char* token;
+            char* next_token;
+            double val;
+            token = strtok_s(substr, ",", &next_token);
+            while (token)
+            {
+                val = atof(token);
+                if (val > 0.0) propagate.push_back(val);
+                token = strtok_s(NULL, ",",&next_token);
+            }
+        }
     }
 
     // Print options
@@ -77,6 +93,7 @@ int main(int argc, char* argv[])
     } else std::cout << "off\n";
     std::cout << "Rescaling "; if (rescale) std::cout << "on\n"; else std::cout << "off\n";
     std::cout << "Singular value threshold = "; if (tolerance == 0.0) std::cout << "auto\n"; else std::cout << tolerance << "\n";
+    std::cout << "Testing time propagation of "; for (int i = 0; i < propagate.size(); i++) { std::cout << propagate[i] << "s "; }; std::cout << "\n";
     std::cout << "Verbosity "; if (verbose) std::cout << "high\n"; else std::cout << "low\n";
 
 
@@ -153,7 +170,7 @@ int main(int argc, char* argv[])
 
     std::cout << "\n\nDisregarding singular values greater than threshold = " << tolerance << "\n";
     std::cout << "Printing possible solutions\n";
-    gsl_matrix* cleanA = CreateRateMatrix(allSites, F_z, kBT, reorg, false, false); // Need the non-conditioned, non-scaled rate matrix for velocity calculations.
+    gsl_matrix* cleanA = CreateRateMatrix(allSites, F_z, kBT, reorg, false, false); // Need the non-conditioned, non-scaled rate matrix for time propogation and velocity calculations.
     int solnum = 0;
     for (int i = 0; i < S->size; i++)
     {
@@ -183,6 +200,27 @@ int main(int argc, char* argv[])
             for (int j = 0; j < Q->size; j++)
                 allSites[j].occProb = gsl_vector_get(Q, j);
             printOccProbs(allSites, 2);
+
+            // Propagate densities in time (Can be useful to check if the solution is steady state).
+            if (!propagate.empty())
+            {
+                std::cout << "\nTime propagation\n";
+                gsl_matrix* Axt = gsl_matrix_alloc(M,M);
+                gsl_matrix* expAxt = gsl_matrix_alloc(M, M);
+                gsl_vector* Qt = gsl_vector_alloc(M);
+                for (int i = 0; i < propagate.size(); i++)
+                {
+                    gsl_matrix_memcpy(Axt, cleanA);
+                    gsl_matrix_scale(Axt, propagate[i]);
+                    gsl_linalg_exponential_ss(Axt, expAxt, GSL_PREC_DOUBLE);
+                    gsl_blas_dgemv(CblasNoTrans, 1.0, expAxt, Q, 0.0, Qt);
+                    std::cout << "\nP( " << propagate[i] << "s ) = \n";
+                    printVector(Qt);
+                }
+                gsl_matrix_free(Axt);
+                gsl_matrix_free(expAxt);
+                gsl_vector_free(Qt);
+            }
 
             double v_z = velocity_z(allSites, cleanA);
             std::cout << "\nvelocity_z = " << v_z << "\n";

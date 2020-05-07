@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "site.h"
+#include "transporter.h"
 #include "consts.h"
 #include "IO.h"
 
@@ -33,7 +34,7 @@ void site::addNeighbour(site* pSite, double J)
 
 }
 
-neighbour* site::hasNeighbour(site* pSite)
+site::neighbour* site::hasNeighbour(site* pSite)
 {
     std::vector<neighbour*>::iterator it = neighbours.begin();
     for (int i = 0; it != neighbours.end(); i++, it++)

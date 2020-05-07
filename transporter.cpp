@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "site.h"
 #include "transporter.h"
 #include "consts.h"
 #include "utility.h"
@@ -28,12 +29,12 @@ double transporter::deltaE(site* orig, site* dest)
 
 }
 
-// Calculate the transfer rate between this site (as initial), and the site passed as pointer (as final).
-// If the passed site is not in the list of interacting neighbours, the rate will be zero.
+// Calculate the transfer rate between two sites.
+// If the passed sites are not interacting, the rate will be zero.
 // Only performs the full calculation the first time this function is called (for this this specific rate).
 double transporter::Rate(site* orig, site* dest)
 {
-    neighbour* pN = orig->hasNeighbour(dest);
+    site::neighbour* pN = orig->hasNeighbour(dest);
 
     if (!pN)
         // Sites aren't interacting, transfer rate will be zero.
@@ -47,7 +48,17 @@ double transporter::Rate(site* orig, site* dest)
     else // Rate has already been calculated. Just grab it.
         return pN->_rate;
 
+}
 
+// Calculate the sum of all transfer rates into the specified site.
+double transporter::RateSum(site* dest)
+{
+    double sum = 0;
+    std::vector<site::neighbour*>::iterator it = dest->neighbours.begin();
+    for (int i = 0; it != dest->neighbours.end(); i++, it++)
+        sum += Rate((*it)->_pSite, dest);
+
+    return sum;
 }
 
 // Calculate the preconditioning factor.
@@ -67,16 +78,9 @@ double transporter::PrecondFactor(site* pSite, PrecondForm form)
     case PrecondForm::boltzmannSquared:
         return std::pow(std::exp((_transE - (pSite->energy + pSite->pos.Z * _fieldZ)) / _kBT), 2.0);
 
-        //ALTERNATIVE PRCONDITIONING FACTOR FROM: Yu PRB 2001 (long)
     case PrecondForm::rateSum:
-    {
-        double sum = 0;
-        std::vector<neighbour*>::iterator it = pSite->neighbours.begin();
-        for (int i = 0; it != pSite->neighbours.end(); i++, it++)
-            sum += Rate((*it)->_pSite, pSite);
+        return 1.0 / RateSum(pSite);
 
-        return 1.0 / sum;
-    }
     default:
         throw std::logic_error("Form of preconditioning factor not implemented.");
         return -1.0;

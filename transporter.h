@@ -23,10 +23,13 @@ public:
 	// If periodic is true then use the minimum image convention to find the shortest path to from this site to the target site.
 	double deltaE(site* orig, site* dest);
 
-	// Calculate the transfer rate between this site (as initial), and the site passed as pointer (as final).
-	// If the passed site is not in the list of interacting neighbours, the rate will be zero.
+	// Calculate the transfer rate between two sites.
+	// If the passed sites are not interacting, the rate will be zero.
 	// Only performs the full calculation the first time this function is called (for this this specific rate).
 	double Rate(site* orig, site* dest);
+
+	// Calculate the sum of all transfer rates into the specified site.
+	double RateSum(site* dest);
 
 	// Alternative forms of preconditioning factor
 	// (Rather than enum could treat site as an interface, 
@@ -42,6 +45,19 @@ public:
 
 	double velocity_z(std::vector<site>& sites, gsl_matrix* A);
 
+};
+
+// A structure used to specify
+// which other sites the parent site interacts with,
+// and the strength of interactions.
+// Full definition in transporter.h
+struct site::neighbour
+{
+	site* _pSite = NULL;
+	double _J = 0.0;
+	private: // Make sure only the function Rate() has access to the member below.
+		friend double transporter::Rate(site* orig, site* dest);
+		double _rate = -1.0; // -1 for not yet set, the rate will be updated the first time it is needed.
 };
 
 

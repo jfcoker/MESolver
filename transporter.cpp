@@ -152,7 +152,14 @@ double transporter::velocity_z(std::vector<site>& sites, gsl_matrix* A)
     for (int i = 0; i < sites.size(); i++)
         for (int j = 0; j < sites.size(); j++)
             if (i != j)
-                sum += (sites[i].pos.Z - sites[j].pos.Z) * gsl_matrix_get(A, j, i) * sites[i].occProb;
+            {
+                double deltaZ = (sites[j].pos.Z - sites[i].pos.Z);
 
+                // If periodic boundaries in z, then apply the minimum image convention.
+                if (_periodic) deltaZ -= _sizeZ * floor(deltaZ * _rsizeZ + 0.5);
+
+                sum += deltaZ * gsl_matrix_get(A, i, j) * sites[j].occProb;
+            }
+    
     return sum;
 }

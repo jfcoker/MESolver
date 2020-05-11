@@ -43,6 +43,7 @@ public:
 
 	gsl_matrix* CreateRateMatrix(std::vector<site>& sites, PrecondForm form, bool scale, bool verbose);
 
+	// Use the occupation probability of sites and the rate equation, to find the average velocity of charges in Ang/s
 	double velocity_z(std::vector<site>& sites, gsl_matrix* A);
 
 };

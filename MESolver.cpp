@@ -229,8 +229,14 @@ int main(int argc, char* argv[])
             }
 
             double v_z = transport.velocity_z(allSites, cleanA);
-            std::cout << "\nvelocity_z = " << v_z << "\n";
-            if (F_z != 0.0) std::cout << "\nmobility = " << v_z / F_z << "\n";
+            std::cout << "\nvelocity_z (Ang/s) = " << v_z << " \n";
+            if (F_z != 0.0) 
+            {
+                double mob = v_z / F_z;
+                std::cout << "mobility (Ang^2 / V*s)= " << mob << "\n";
+                std::cout << "mobility (cm^2 / V*s)= " << mob * 1e-16 << "\n";
+            }
+
             
             //if (verbose)
             //{

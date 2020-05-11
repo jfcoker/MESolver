@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
             std::cout << "\nOccupation densities\n";
             for (int j = 0; j < Q->size; j++)
                 allSites[j].occProb = gsl_vector_get(Q, j);
-            printOccProbs(allSites, 2);
+            printOccProbs(allSites, 6);
 
             // Propagate densities in time (Can be useful to check if the solution is steady state).
             if (!propagate.empty())

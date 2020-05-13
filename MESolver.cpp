@@ -1,4 +1,5 @@
 // This program should be capable of using SVD to solve the master equation describing the steady state transport of charge carriers in an array of molecules
+// Test
 
 #include "pch.h"
 #include "consts.h"
@@ -38,7 +39,7 @@ int main(int argc, char* argv[])
         if (strstr(argv[i], ".xyz"))  strcpy_s(xyz, argv[i]);
         if (strstr(argv[i], ".edge")) strcpy_s(edge, argv[i]);
         if (strstr(argv[i], ".occ")) strcpy_s(occ, argv[i]);
-
+        
         // Options
         if (strcmp(argv[i], "-v") == 0) verbose = true;
         if (strstr(argv[i], "--precondition"))
